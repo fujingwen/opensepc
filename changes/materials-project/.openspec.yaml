@@ -1,0 +1,12 @@
+schema: spec-driven
+created: 2026-03-10
+updated: 2026-03-18
+status: in_progress
+version: 1.0.0
+owner: 开发团队
+tags:
+  - 建材模块
+  - 工程项目
+depends_on: []
+related_requirements: []
+notes: 工程项目管理功能，用于管理工程项目的基本信息

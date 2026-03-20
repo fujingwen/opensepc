@@ -1,0 +1,41 @@
+schema: spec-driven
+
+context: |
+  Project: Construction Material Management System (建材管理系统)
+  Description: A comprehensive material management system for construction projects
+
+  Backend Architecture (construction-material-backend):
+  - Java 17
+  - Spring Boot 3.2.6
+  - MyBatis-Plus 3.5.7
+  - Sa-Token 1.38.0 for authentication
+  - PostgreSQL for database
+  - Redisson 3.31.0 for Redis client
+  - MapStruct-Plus 1.3.6 for object conversion
+  - See: common/common_backend_development/spec.md for full details
+
+  Frontend Architecture (construction-material-web):
+  - Vue 3.4.31
+  - Vite 5.3.2
+  - Element Plus 2.7.6
+  - Pinia for state management
+  - Axios 0.28.1 for HTTP requests
+  - See: common/common_frontend_development/spec.md for full details
+
+  Architecture & Standards:
+  - Module structure, naming conventions, database design
+  - See: common/common_architecture/spec.md for full details
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+rules:
+  # 规则文件引用
+  # 在新建提案，生成目录时，使用目录结构规则
+  directory_structure: rules/directory-structure-rules.md
+  # 在生成提案文件时，使用提案规则
+  proposal: rules/proposal-rules.md
+  # 在执行提案时，使用代码模板生成
+  code_generation: rules/code-generation-rules.md
+  # 在执行项目时，记录问题规则
+  issues: rules/issues-rules.md
+  development: rules/development-rules.md
