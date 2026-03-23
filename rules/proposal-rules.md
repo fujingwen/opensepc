@@ -29,3 +29,16 @@
 - 生成文档在框架与排版上必须完全遵循 `common/common_architecture/spec.md` 给出的格式标准。
 - 完整的提案（Proposal）必须全方位包含前端视角的界面呈现要求以及后端业务驱动实现的技术细节。
 - 提案文档内容中**不要**杂糅进去路由配置（Route configuration）的信息。
+
+## 提案 Impact 部分要求
+
+- **必须**在 Impact 部分列出生成的所有文件清单，包括：
+  - SQL 文件（建表、序列、索引、字典、菜单等）
+  - 后端文件（Entity、Bo、Vo、Mapper、Service、Controller 等）
+  - 前端文件（API、页面组件等）
+- 文件路径应相对于项目根目录
+
+## 数据库类型规范
+
+- PostgreSQL 不支持 `tinyint` 类型，应使用 `smallint` 代替
+- 建表 SQL 中应避免使用 MySQL 特有类型

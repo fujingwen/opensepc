@@ -57,22 +57,22 @@
 
 | 业务字段 | 数据库字段 | 说明 |
 |---------|-----------|------|
-| id | F_Id | 主键 |
-| parentId | F_ParentId | 上级区划ID |
-| enCode | F_EnCode | 行政区划编码 |
-| fullName | F_FullName | 行政区划名称 |
-| quickQuery | F_QuickQuery | 快速查询码 |
-| type | F_Type | 类型（1-省/直辖市 2-市 3-区县 4-街道） |
-| description | F_Description | 描述 |
-| sortCode | F_SortCode | 排序码 |
-| enabledMark | F_EnabledMark | 状态（1-正常 0-停用） |
-| creatorTime | F_CreatorTime | 创建时间 |
-| creatorUserId | F_CreatorUserId | 创建人ID |
-| lastModifyTime | F_LastModifyTime | 最后修改时间 |
-| lastModifyUserId | F_LastModifyUserId | 最后修改人ID |
-| delFlag | F_DeleteMark | 删除标志（0代表存在 2代表删除） |
-| deleteTime | F_DeleteTime | 删除时间 |
-| deleteUserId | F_DeleteUserId | 删除人ID |
+| id | id | 主键 |
+| parentId | parent_id | 上级区划ID |
+| enCode | en_code | 行政区划编码 |
+| fullName | full_name | 行政区划名称 |
+| quickQuery | quick_query | 快速查询码 |
+| type | type | 类型（1-省/直辖市 2-市 3-区县 4-街道） |
+| description | description | 描述 |
+| sortCode | sort_code | 排序码 |
+| enabledMark | enabled_mark | 状态（1-正常 0-停用） |
+| createTime | create_time | 创建时间 |
+| createBy | create_by | 创建人ID |
+| updateTime | update_time | 最后修改时间 |
+| updateBy | update_by | 最后修改人ID |
+| delFlag | delete_mark | 删除标志（0代表存在 2代表删除） |
+| deleteTime | delete_time | 删除时间 |
+| deleteUserId | delete_user_id | 删除人ID |
 
 ## Implementation Details
 

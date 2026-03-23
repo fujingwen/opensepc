@@ -9,23 +9,23 @@
 
 ### 2.1 实体类与Mapper
 
-- [ ] 2.1.1 创建 BaseProvinceEntity 实体类（对应master.base_province表）
-- [ ] 2.1.2 创建 BaseProvinceMapper 接口
-- [ ] 2.1.3 创建 BaseProvinceMapper.xml
+- [x] 2.1.1 创建 BaseProvinceEntity 实体类（对应master.base_province表）
+- [x] 2.1.2 创建 BaseProvinceMapper 接口
+- [x] 2.1.3 创建 BaseProvinceMapper.xml
 
 ### 2.2 Service层
 
-- [ ] 2.2.1 创建 IBaseProvinceService 接口
-- [ ] 2.2.2 创建 BaseProvinceServiceImpl 实现类
+- [x] 2.2.1 创建 IBaseProvinceService 接口
+- [x] 2.2.2 创建 BaseProvinceServiceImpl 实现类
 - [ ] 2.2.3 实现地区名称填充工具类 RegionNameFillUtil
 
 ### 2.3 Controller层
 
-- [ ] 2.3.1 创建 BaseProvinceController（系统管理-行政区划）
-- [ ] 2.3.2 实现分页查询接口
-- [ ] 2.3.3 实现获取树形数据接口（treeselect）
-- [ ] 2.3.4 实现获取子级地区列表接口
-- [ ] 2.3.5 实现增删改接口
+- [x] 2.3.1 创建 BaseProvinceController（系统管理-行政区划）
+- [x] 2.3.2 实现分页查询接口
+- [x] 2.3.3 实现获取树形数据接口（treeselect）
+- [x] 2.3.4 实现获取子级地区列表接口
+- [x] 2.3.5 实现增删改接口
 
 ### 2.4 配置与权限
 
@@ -36,14 +36,15 @@
 
 ### 3.1 API层
 
-- [ ] 3.1.1 创建行政区划API接口文件 api/system/region.ts
-- [ ] 3.1.2 实现分页查询方法
-- [ ] 3.1.3 实现树形数据获取方法
-- [ ] 3.1.4 实现增删改方法
+- [x] 3.1.1 创建行政区划API接口文件 api/system/region.js
+- [x] 3.1.2 实现分页查询方法
+- [x] 3.1.3 实现树形数据获取方法
+- [x] 3.1.4 实现增删改方法
 
 ### 3.2 公共组件
 
 #### 3.2.1 RegionSelect 组件（Popover形式）
+
 - [x] 3.2.1.1 创建 RegionSelect 组件目录结构
 - [x] 3.2.1.2 实现省市区三级联动选择器
 - [x] 3.2.1.3 实现Props和Events接口
@@ -52,6 +53,7 @@
 - [x] 3.2.1.6 编写组件使用说明
 
 #### 3.2.2 RegionDialog 组件（Dialog形式）
+
 - [ ] 3.2.2.1 创建 RegionDialog 组件目录结构
 - [ ] 3.2.2.2 实现省市区树形选择器
 - [ ] 3.2.2.3 实现Props和Events接口
@@ -61,13 +63,13 @@
 
 ### 3.3 行政区划管理页面
 
-- [ ] 3.3.1 创建页面目录 views/system/region
-- [ ] 3.3.2 实现查询功能（行政区划名称/编码、状态筛选）
-- [ ] 3.3.3 实现Table表格展示
-- [ ] 3.3.4 实现新增弹窗
-- [ ] 3.3.5 实现编辑弹窗
-- [ ] 3.3.6 实现删除功能
-- [ ] 3.3.7 配置路由
+- [x] 3.3.1 创建页面目录 views/system/region
+- [x] 3.3.2 实现查询功能（行政区划名称/编码、状态筛选）
+- [x] 3.3.3 实现Table表格展示
+- [x] 3.3.4 实现新增弹窗
+- [x] 3.3.5 实现编辑弹窗
+- [x] 3.3.6 实现删除功能
+- [x] 3.3.7 配置路由
 
 ### 3.4 菜单配置
 

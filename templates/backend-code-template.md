@@ -8,38 +8,41 @@
 
 创建新模块时需要创建以下文件：
 
+### 示例：系统管理模块（sys_前缀）
+
 ```
 hny-modules/
-└── hny-module/
-    ├── pom.xml                           # Maven配置文件
+└── hny-system/
     └── src/main/
-        ├── java/com/hny/module/
+        ├── java/com/hny/system/
         │   ├── controller/
-        │   │   └── ResourceController.java      # 控制器
+        │   │   └── system/
+        │   │       └── SysProductController.java      # 控制器
         │   ├── service/
-        │   │   ├── IResourceService.java        # 服务接口
+        │   │   ├── ISysProductService.java            # 服务接口
         │   │   └── impl/
-        │   │       └── ResourceServiceImpl.java   # 服务实现
+        │   │       └── SysProductServiceImpl.java     # 服务实现
         │   ├── domain/
-        │   │   ├── Resource.java               # 实体类
+        │   │   ├── SysProduct.java                   # 实体类
         │   │   ├── bo/
-        │   │   │   └── ResourceBo.java         # 业务对象
+        │   │   │   └── SysProductBo.java             # 业务对象
         │   │   └── vo/
-        │   │       ├── ResourceVo.java        # 视图对象
-        │   │       └── ResourceExcelVO.java    # Excel导出VO（可选，仅在有导出功能时需要）
+        │   │       └── SysProductVo.java             # 视图对象
+        │   │       └── SysProductExcelVO.java       # Excel导出VO（可选）
         │   └── mapper/
-        │       └── ResourceMapper.java         # Mapper接口
+        │       └── SysProductMapper.java             # Mapper接口
         └── resources/
-            └── mapper/module/
-                └── ResourceMapper.xml          # MyBatis Mapper XML
+            └── mapper/system/
+                └── SysProductMapper.xml              # MyBatis Mapper XML
 ```
 
-**说明**：
-
-- `ResourceExcelVO.java` 仅在有导出功能时需要创建，不是每个实体都必须有的
-- 如果不需要导出功能，可以不创建该文件
-- `pom.xml` 是模块的Maven配置文件，必须创建
-- `resources/mapper/` 目录存放MyBatis的Mapper XML文件
+**命名规范**：
+- 系统管理模块：表名 `sys_`，类名 `Sys` 前缀
+- 建材管理模块：表名 `mat_`，类名 `Mat` 前缀
+- 其他模块：按需命名
+- 包路径为 `com.hny.{模块名}`
+- Controller 放在 `controller/{模块名}/` 目录
+- Mapper XML 放在 `resources/mapper/{模块名}/` 目录
 
 ## Maven模块配置
 
@@ -194,13 +197,13 @@ hny-modules/
 ## 1. Controller层模板 (ResourceController.java)
 
 ```java
-package com.hny.module.controller;
+package com.hny.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import com.hny.module.domain.bo.ResourceBo;
-import com.hny.module.domain.vo.ResourceVo;
-import com.hny.module.domain.vo.ResourceExcelVO;
-import com.hny.module.service.IResourceService;
+import com.hny.system.domain.bo.ResourceBo;
+import com.hny.system.domain.vo.ResourceVo;
+import com.hny.system.domain.vo.ResourceExcelVO;
+import com.hny.system.service.IResourceService;
 import com.hny.common.core.domain.R;
 import com.hny.common.core.validate.AddGroup;
 import com.hny.common.core.validate.EditGroup;
@@ -298,10 +301,10 @@ public class ResourceController extends BaseController {
 ## 2. Service接口模板 (IResourceService.java)
 
 ```java
-package com.hny.module.service;
+package com.hny.system.service;
 
-import com.hny.module.domain.bo.ResourceBo;
-import com.hny.module.domain.vo.ResourceVo;
+import com.hny.system.domain.bo.ResourceBo;
+import com.hny.system.domain.vo.ResourceVo;
 import com.hny.common.mybatis.core.page.PageQuery;
 import com.hny.common.mybatis.core.page.TableDataInfo;
 
@@ -375,14 +378,14 @@ public interface IResourceService {
 ## 3. Service实现模板 (ResourceServiceImpl.java)
 
 ```java
-package com.hny.module.service.impl;
+package com.hny.system.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.hny.module.domain.Resource;
-import com.hny.module.domain.bo.ResourceBo;
-import com.hny.module.domain.vo.ResourceVo;
-import com.hny.module.mapper.ResourceMapper;
-import com.hny.module.service.IResourceService;
+import com.hny.system.domain.Resource;
+import com.hny.system.domain.bo.ResourceBo;
+import com.hny.system.domain.vo.ResourceVo;
+import com.hny.system.mapper.ResourceMapper;
+import com.hny.system.service.IResourceService;
 import com.hny.common.core.utils.MapstructUtils;
 import com.hny.common.mybatis.core.page.PageQuery;
 import com.hny.common.mybatis.core.page.TableDataInfo;
@@ -468,7 +471,7 @@ public class ResourceServiceImpl implements IResourceService {
 ## 4. Entity实体模板 (Resource.java)
 
 ```java
-package com.hny.module.domain;
+package com.hny.system.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.hny.common.tenant.core.TenantEntity;
@@ -557,7 +560,7 @@ private LocalDate entryTimeEnd;
 ## 5. Bo业务对象模板 (ResourceBo.java)
 
 ```java
-package com.hny.module.domain.bo;
+package com.hny.system.domain.bo;
 
 import io.github.linpeilie.annotations.AutoMapper;
 import jakarta.validation.constraints.NotBlank;
@@ -566,7 +569,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import com.hny.common.mybatis.core.domain.BaseEntity;
-import com.hny.module.domain.Resource;
+import com.hny.system.domain.Resource;
 
 import java.util.List;
 
@@ -619,7 +622,7 @@ public class ResourceBo extends BaseEntity {
 - `tenantId` - 租户编号
 
 ```java
-package com.hny.module.domain.vo;
+package com.hny.system.domain.vo;
 
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
@@ -632,7 +635,7 @@ import java.util.Date;
  * 资源视图对象 resource
  */
 @Data
-@AutoMapper(target = com.hny.module.domain.Resource.class)
+@AutoMapper(target = com.hny.system.domain.Resource.class)
 public class ResourceVo implements Serializable {
 
     @Serial
@@ -690,7 +693,7 @@ public class ResourceVo implements Serializable {
 **注意**：仅在需要导出功能时才需要创建此文件，不是每个实体都必须有。
 
 ```java
-package com.hny.module.domain.vo;
+package com.hny.system.domain.vo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.Data;
@@ -742,9 +745,9 @@ public class ResourceExcelVO implements Serializable {
 ## 8. Mapper接口模板 (ResourceMapper.java)
 
 ```java
-package com.hny.module.mapper;
+package com.hny.system.mapper;
 
-import com.hny.module.domain.Resource;
+import com.hny.system.domain.Resource;
 import com.hny.common.mybatis.core.mapper.BaseMapperPlus;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -774,9 +777,9 @@ public interface ResourceMapper extends BaseMapperPlus<Resource, Resource> {
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hny.module.mapper.ResourceMapper">
+<mapper namespace="com.hny.system.mapper.ResourceMapper">
 
-    <resultMap type="com.hny.module.domain.vo.ResourceVo" id="ResourceResult">
+    <resultMap type="com.hny.system.domain.vo.ResourceVo" id="ResourceResult">
         <id property="id" column="id"/>
         <result property="field1" column="field1"/>
         <result property="field2" column="field2"/>
@@ -789,7 +792,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="tenantId" column="tenant_id"/>
     </resultMap>
 
-    <resultMap type="com.hny.module.domain.vo.ResourceExcelVO" id="ResourceExportResult">
+    <resultMap type="com.hny.system.domain.vo.ResourceExcelVO" id="ResourceExportResult">
         <id property="id" column="id"/>
         <result property="field1" column="field1"/>
         <result property="field2" column="field2"/>
@@ -803,7 +806,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         from resource
     </sql>
 
-    <select id="selectResourceList" parameterType="com.hny.module.domain.Resource" resultMap="ResourceResult">
+    <select id="selectResourceList" parameterType="com.hny.system.domain.Resource" resultMap="ResourceResult">
         <include refid="selectResourceVo"/>
         <where>
             del_flag = '0'
@@ -955,7 +958,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   - 必须导入 `io.github.linpeilie.annotations.AutoMapper`
   - 必须导入 `lombok.*` 相关注解
   - 必须导入 `com.hny.common.mybatis.core.domain.BaseEntity`
-  - 必须导入 `com.hny.module.domain.Resource`（实体类）
+  - 必须导入 `com.hny.system.domain.Resource`（实体类）
 
 ### 5. Vo视图对象规范
 

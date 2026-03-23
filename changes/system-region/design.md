@@ -32,26 +32,24 @@
 
 | 字段名 | 类型 | 说明 |
 |--------|------|------|
-| F_Id | VARCHAR(64) | 主键 |
-| F_ParentId | VARCHAR(64) | 上级区划ID |
-| F_EnCode | VARCHAR(50) | 行政区划编码 |
-| F_FullName | VARCHAR(100) | 行政区划名称 |
-| F_QuickQuery | VARCHAR(100) | 快速查询码 |
-| F_Type | INT | 类型（1-省/直辖市 2-市 3-区县 4-街道） |
-| F_Description | TEXT | 描述 |
-| F_SortCode | INT | 排序码 |
-| F_EnabledMark | INT | 状态（1-正常 0-停用），用字典标识 |
-| F_CreatorTime | TIMESTAMP | 创建时间 |
-| F_CreatorUserId | VARCHAR(64) | 创建人ID |
-| F_LastModifyTime | TIMESTAMP | 最后修改时间 |
-| F_LastModifyUserId | VARCHAR(64) | 最后修改人ID |
-| F_DeleteMark | INT | 删除标记（0-正常 1-已删除） |
-| F_DeleteTime | TIMESTAMP | 删除时间 |
-| F_DeleteUserId | VARCHAR(64) | 删除人ID |
+| id | VARCHAR(64) | 主键 |
+| parent_id | VARCHAR(64) | 上级区划ID |
+| en_code | VARCHAR(50) | 行政区划编码 |
+| full_name | VARCHAR(100) | 行政区划名称 |
+| quick_query | VARCHAR(100) | 快速查询码 |
+| type | INT | 类型（1-省/直辖市 2-市 3-区县 4-街道） |
+| description | TEXT | 描述 |
+| sort_code | INT | 排序码 |
+| enabled_mark | INT | 状态（1-正常 0-停用），用字典标识 |
+| create_time | TIMESTAMP | 创建时间 |
+| create_by | VARCHAR(64) | 创建人ID |
+| update_time | TIMESTAMP | 最后修改时间 |
+| update_by | VARCHAR(64) | 最后修改人ID |
+| delete_mark | INT | 删除标记（0-正常 1-已删除） |
+| delete_time | TIMESTAMP | 删除时间 |
+| delete_user_id | VARCHAR(64) | 删除人ID |
 | tenant_id | VARCHAR(50) | 租户ID |
 | create_dept | BIGINT | 创建部门 |
-| create_by | VARCHAR(50) | 创建人 |
-| update_by | VARCHAR(50) | 更新人 |
 | del_flag | SMALLINT | 删除标记 |
 
 ### 菜单和权限设计
@@ -93,12 +91,12 @@
 
 列表展示字段：
 
-- 行政区划编码（F_EnCode）
-- 行政区划名称（F_FullName）
-- 上级区划（F_ParentId）
-- 排序（F_SortCode）
-- 状态（F_EnabledMark，用字典标识）
-- 创建时间（F_CreatorTime）
+- 行政区划编码（en_code）
+- 行政区划名称（full_name）
+- 上级区划（parent_id）
+- 排序（sort_code）
+- 状态（enabled_mark，用字典标识）
+- 创建时间（create_time）
 - 操作（编辑、删除）
 
 新增页面字段：
