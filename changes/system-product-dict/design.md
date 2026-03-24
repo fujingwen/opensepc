@@ -1,8 +1,8 @@
-# 产品管理（字典替换）- 详细设计
+# 产品管理 - 详细设计
 
 ## 1. 功能概述
 
-产品管理是系统管理模块下的一个子模块，用于管理建筑材料产品数据。采用专用 sys_product 表存储数据，左侧为产品类别树，右侧为产品数据树。
+产品管理是系统管理模块下的一个子模块，用于管理建筑材料产品数据。采用字典表存储数据，左侧为产品类别树（字典类型），右侧为产品数据树（字典数据）。
 
 ## 2. 页面设计
 
@@ -10,8 +10,8 @@
 
 采用左右分栏布局：
 
-- 左侧：产品类别树（node_type = 'category'）
-- 右侧：产品数据列表（根据左侧选中类别动态加载，包含 product 和 spec 两种类型）
+- 左侧：产品类别树（字典类型）
+- 右侧：产品数据列表（字典数据，根据左侧选中类别动态加载）
 
 ### 2.2 左侧产品类别树
 
@@ -35,17 +35,12 @@
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| id | Long | 主键ID |
-| parentId | Long | 父级ID（顶级为 0） |
+| id | String | 主键ID |
+| parentId | String | 父级ID（顶级为 -1） |
 | fullName | String | 产品类别名称 |
 | enCode | String | 编码 |
-| nodeType | String | 节点类型（category-类别，product-产品） |
-| categoryId | Long | 类别ID |
-| specification | String | 规格 |
-| unit | String | 单位 |
-| sortCode | Integer | 排序码 |
+| sortCode | Long | 排序码 |
 | enabledMark | Integer | 状态（1-正常 0-停用） |
-| remark | String | 备注 |
 | hasChildren | Boolean | 是否有子节点 |
 | children | List | 子节点列表 |
 
@@ -78,23 +73,20 @@
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| id | Long | 主键ID |
-| parentId | Long | 父级ID |
+| id | String | 主键ID |
+| parentId | String | 父级ID |
 | fullName | String | 产品名称 |
 | enCode | String | 编码 |
-| nodeType | String | 节点类型（category-类别，product-产品） |
-| categoryId | Long | 所属类别ID |
-| specification | String | 规格 |
-| unit | String | 单位 |
-| sortCode | Integer | 排序码 |
+| sortCode | Long | 排序码 |
 | enabledMark | Integer | 状态（1-正常 0-停用） |
-| remark | String | 备注 |
+| description | String | 说明 |
+| dictionaryTypeId | String | 所属字典类型ID |
 | hasChildren | Boolean | 是否有子节点 |
 | children | List | 子节点列表 |
 
 ### 2.4 操作按钮
 
-- **新增类别**：点击左侧"新增类别"按钮，新增产品类别
+- **新增类别**：点击左侧"新增类别"按钮，新增字典类型
 - **新增**：点击右侧"新增"按钮，以选中行作为父级新增子数据
 - **编辑**：编辑当前行数据
 - **删除**：删除当前行数据（如有子元素则不允许删除）
@@ -105,58 +97,53 @@
 
 ### 3.1 表结构
 
-使用现有的 sys_product 表：
+使用现有字典表：
 
 | 表名 | 用途 | 说明 |
 |------|------|------|
-| sys_product | 产品表 | 已存在，存储产品类别和产品数据 |
+| base_dictionarytype | 存储产品类别 | 左侧类别树 |
+| base_dictionarydata | 存储产品数据 | 右侧产品数据 |
 
-### 3.2 产品表（sys_product）
-
-现有表结构：
+### 3.2 字典类型表（base_dictionarytype）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| id | bigint | 主键ID |
-| parent_id | bigint | 父级ID |
-| tree_path | varchar(500) | 树路径 |
-| node_type | varchar(20) | 节点类型（category-类别，product-产品） |
-| category_id | bigint | 类别ID |
-| full_name | varchar(200) | 名称 |
-| en_code | varchar(100) | 编码 |
-| specification | varchar(200) | 规格 |
-| unit | varchar(20) | 单位 |
-| sort_code | integer | 排序码 |
-| enabled_mark | smallint | 状态（1-正常 0-停用） |
-| remark | varchar(500) | 备注 |
-| tenant_id | varchar(20) | 租户编号 |
-| del_flag | char(1) | 删除标志（0-正常 2-删除） |
+| id | String | 主键ID |
+| parent_id | String | 父级ID（顶级为 -1） |
+| full_name | String | 类别名称 |
+| en_code | String | 编码 |
+| is_tree | Integer | 是否树形（1-是） |
+| description | String | 描述 |
+| sort_code | Long | 排序码 |
+| enabled_mark | Integer | 状态（1-正常 0-停用） |
+| del_flag | Char | 删除标志（0-正常 2-删除） |
 
-### 3.3 数据层级说明
+### 3.3 字典数据表（base_dictionarydata）
 
-sys_product 表存储三种类型的数据：
-
-| node_type | 层级 | 说明 |
-|-----------|------|------|
-| category | 第一层 | 产品类别（左侧树），如：建筑钢材、防水材料 |
-| product | 第二层 | 产品名称（右侧第1层），如：螺纹钢、HPB300 |
-| spec | 第三层及以下 | 产品规格（右侧第2层及以下），如：厚度10mm |
-
-**category_id 规则**：所有属于同一顶级类别的数据，category_id 应指向该顶级类别的 id。
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | String | 主键ID |
+| parent_id | String | 父级ID |
+| full_name | String | 产品名称 |
+| en_code | String | 编码 |
+| simple_spelling | String | 简拼 |
+| is_default | Integer | 是否默认 |
+| description | String | 说明 |
+| sort_code | Long | 排序码 |
+| enabled_mark | Integer | 状态（1-正常 0-停用） |
+| is_title | Integer | 是否标题 |
+| is_custom | Integer | 是否自定义 |
+| dictionary_type_id | String | 所属字典类型ID |
+| zjc_code | String | 附加编码 |
+| del_flag | Char | 删除标志（0-正常 2-删除） |
 
 ## 4. API 设计
 
-### 4.1 产品类别列表（左侧类别树）
+### 4.1 字典类型列表（左侧类别树）
 
 ```
-GET /system/product/category/list
+GET /base/dictionary/type/list
 ```
-
-查询参数：
-
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| fullName | String | 名称（模糊查询） |
 
 响应：
 
@@ -165,12 +152,10 @@ GET /system/product/category/list
   "code": 200,
   "data": [
     {
-      "id": 1,
-      "parentId": 0,
+      "id": "xxx",
+      "parentId": "-1",
       "fullName": "建材名称",
       "enCode": "jcmc",
-      "nodeType": "category",
-      "categoryId": 0,
       "sortCode": 1,
       "enabledMark": 1,
       "hasChildren": true,
@@ -180,10 +165,10 @@ GET /system/product/category/list
 }
 ```
 
-### 4.2 产品列表（右侧产品列表）
+### 4.2 字典数据列表（右侧产品列表）
 
 ```
-GET /system/product/list/{categoryId}
+GET /base/dictionary/data/list/{dictionaryTypeId}
 ```
 
 查询参数：
@@ -200,24 +185,23 @@ GET /system/product/list/{categoryId}
   "code": 200,
   "data": [
     {
-      "id": 2,
-      "parentId": 1,
+      "id": "xxx",
+      "parentId": "yyy",
       "fullName": "建筑钢材",
       "enCode": "jzgc",
       "sortCode": 1,
       "enabledMark": 1,
       "description": "说明",
-      "categoryId": 1,
+      "dictionaryTypeId": "yyy",
       "hasChildren": true,
       "children": [
         {
-          "id": 3,
-          "parentId": 2,
+          "id": "zzz",
+          "parentId": "xxx",
           "fullName": "螺纹钢",
           "enCode": "lwz",
           "sortCode": 1,
           "enabledMark": 1,
-          "categoryId": 1,
           "hasChildren": false,
           "children": []
         }
@@ -227,68 +211,67 @@ GET /system/product/list/{categoryId}
 }
 ```
 
-### 4.3 新增产品类别
+### 4.3 新增字典类型
 
 ```
-POST /system/product/category
+POST /base/dictionary/type
 ```
 
 请求体：
 
 ```json
 {
-  "parentId": 0,
+  "parentId": "0",
   "fullName": "建筑钢材",
   "enCode": "jzgc",
-  "categoryId": 0,
   "sortCode": 1,
   "enabledMark": 1,
   "description": "说明"
 }
 ```
 
-### 4.4 修改产品类别
+### 4.4 修改字典类型
 
 ```
-PUT /system/product/category
+PUT /base/dictionary/type
 ```
 
-### 4.5 删除产品类别
+### 4.5 删除字典类型
 
 ```
-DELETE /system/product/category/{id}
+DELETE /base/dictionary/type/{id}
 ```
 
-### 4.6 新增产品
+### 4.6 新增字典数据
 
 ```
-POST /system/product
+POST /base/dictionary/data
 ```
 
 请求体：
 
 ```json
 {
-  "parentId": 1,
+  "parentId": "xxx",
   "fullName": "螺纹钢",
   "enCode": "lwz",
-  "categoryId": 1,
   "sortCode": 1,
   "enabledMark": 1,
-  "description": "说明"
+  "description": "说明",
+  "dictionaryTypeId": "yyy"
 }
 ```
 
-### 4.7 修改产品
+### 4.7 修改字典数据
 
 ```
-PUT /system/product
+PUT /base/dictionary/data
 ```
 
-### 4.8 删除产品
+### 4.8 删除字典数据
 
 ```
-DELETE /system/product/{id}
+DELETE /base/dictionary/data/{id}
 ```
 
 **删除规则**：
@@ -302,31 +285,18 @@ DELETE /system/product/{id}
 
 ### 5.1 页面组件
 
-- `views/system/product/index1.vue` - 产品管理主页面（使用 sys_product 表）
+- `views/system/product/index-dict.vue` - 产品管理主页面
 
 ### 5.2 API 接口
 
-- `api/system/product.js` - 产品管理 API（index1.vue 使用）
+- `api/base/dictionary.js` - 字典管理 API
 
-### 5.3 懒加载接口（供其他页面使用）
+### 5.3 组件交互
 
-为了支持在其他页面中懒加载产品数据，提供以下接口：
-
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| `/system/product/lazy/{parentId}` | GET | 根据父ID懒加载子节点数据 |
-
-该接口返回指定父级ID下的所有子节点数据，用于：
-- 产品选择弹窗中的树形组件
-- 懒加载表格
-- 级联选择器
-
-### 5.4 组件交互
-
-1. 页面加载时，调用 `listCategory()` 加载左侧产品类别树
-2. 点击左侧类别，调用 `listProduct(categoryId, queryParams)` 加载右侧数据
-3. 点击"新增类别"：新增产品类别记录到 sys_product 表
-4. 点击右侧"新增"：以选中行作为父级新增子数据到 sys_product 表
+1. 页面加载时，调用 `listDictionaryType()` 加载左侧产品类别树
+2. 点击左侧类别，调用 `listDictionaryData(categoryId, queryParams)` 加载右侧数据
+3. 点击"新增类别"：新增字典类型到 base_dictionarytype 表
+4. 点击右侧"新增"：以选中行作为父级新增子数据到 base_dictionarydata 表
 5. 点击"展开"/"收起"：使用 toggleRowExpansion 控制表格行展开
 
 ### 5.4 使用的模板
@@ -343,19 +313,20 @@ DELETE /system/product/{id}
 
 ## 6. 权限设计
 
-使用现有产品管理菜单的权限标识：
-
 | 权限标识 | 说明 |
 |---------|------|
-| system:product:list | 查询 |
-| system:product:query | 详情 |
-| system:product:add | 新增 |
-| system:product:edit | 修改 |
-| system:product:remove | 删除 |
+| base:dictionary:list | 查询 |
+| base:dictionary:query | 详情 |
+| base:dictionary:add | 新增 |
+| base:dictionary:edit | 修改 |
+| base:dictionary:remove | 删除 |
 
 ## 7. 菜单设计
 
-使用现有的"产品管理"菜单，组件路径改为 `system/product/index1`
+- 父级菜单：系统管理
+- 菜单名称：产品管理dict
+- 组件路径：system/product/index-dict
+- 权限标识：base:dictionary:list
 
 ## 8. 状态字典
 
@@ -375,23 +346,9 @@ DELETE /system/product/{id}
 3. 递归构建树形结构
 4. 返回带 children 和 hasChildren 字段的树形数据
 
-## 10. 与原提案的关系
+## 10. 后续扩展
 
-### 10.1 代码独立性
-
-- 原有基于字典表的 system-product 提案代码保持不变
-- index.vue 继续使用 dictionary.js API 操作字典表
-- index1.vue 使用 product.js API 操作 sys_product 表
-
-### 10.2 共存设计
-
-两个页面可以同时存在：
-- `/system/product/index` - 使用字典表的产品管理
-- `/system/product/index1` - 使用 sys_product 表的产品管理
-
-## 11. 后续扩展
-
-### 11.1 建材产品关联
+### 10.1 建材产品关联
 
 后续在建材产品模块中选择产品时，被选择的产品不能被删除。
 
@@ -400,6 +357,6 @@ DELETE /system/product/{id}
 - 在删除产品前，检查是否被建材产品关联
 - 如果有关联，则不允许删除，返回提示信息："该产品已被建材产品使用，无法删除"
 
-### 11.2 扩展字段
+### 10.2 扩展字段
 
 如需支持产品与其他业务表的关联，可以在产品表中预留扩展字段。

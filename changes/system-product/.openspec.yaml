@@ -1,8 +1,10 @@
-id: system-product
-name: 产品管理
-module: system
+version: 1.0
+name: system-product
+displayName: 产品管理
+description: 使用sys_product表实现产品管理功能
 status: draft
-version: 1.0.0
 author: claude
 created: 2026-03-20
-updated: 2026-03-20
+tags:
+  - system
+  - product

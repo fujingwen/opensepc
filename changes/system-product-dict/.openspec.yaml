@@ -1,11 +1,11 @@
 version: 1.0
 name: system-product-dict
-displayName: 产品管理（字典替换）
-description: 使用sys_product表代替base_dictionarytype和base_dictionarydata表，实现产品管理功能
+displayName: 产品管理（字典）
+description: 使用字典表（base_dictionarytype和base_dictionarydata）实现产品管理功能
 status: draft
 author: claude
 created: 2026-03-23
 tags:
   - system
   - product
-  - dict-replace
+  - dict
