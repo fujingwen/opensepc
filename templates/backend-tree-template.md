@@ -42,21 +42,20 @@ hny-modules/
 ## 1. Controller层模板 (RegionController.java)
 
 ```java
-package com.hny.system.controller;
+package com.hny.system.controller.system;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.hny.system.domain.bo.RegionBo;
 import com.hny.system.domain.vo.RegionVo;
 import com.hny.system.service.IRegionService;
 import com.hny.common.core.domain.R;
-import com.hny.common.core.validate.AddGroup;
-import com.hny.common.core.validate.EditGroup;
+import com.hny.common.log.annotation.Log;
+import com.hny.common.log.enums.BusinessType;
 import com.hny.common.web.core.BaseController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -75,8 +74,8 @@ public class RegionController extends BaseController {
      */
     @SaCheckPermission("system:region:list")
     @GetMapping("/list")
-    public R<List<RegionVo>> list(RegionBo region) {
-        return R.ok(regionService.selectRegionList(region));
+    public List<RegionVo> list(RegionBo region) {
+        return regionService.selectRegionList(region);
     }
 
     /**
@@ -92,27 +91,33 @@ public class RegionController extends BaseController {
      * 新增行政区划
      */
     @SaCheckPermission("system:region:add")
+    @Log(title = "行政区划", businessType = BusinessType.INSERT)
     @PostMapping
-    public R<Void> add(@Validated(AddGroup.class) @RequestBody RegionBo region) {
-        return toAjax(regionService.insertRegion(region));
+    public R<Void> add(@Validated @RequestBody RegionBo region) {
+        regionService.insertRegion(region);
+        return R.ok();
     }
 
     /**
      * 修改行政区划
      */
     @SaCheckPermission("system:region:edit")
+    @Log(title = "行政区划", businessType = BusinessType.UPDATE)
     @PutMapping
-    public R<Void> edit(@Validated(EditGroup.class) @RequestBody RegionBo region) {
-        return toAjax(regionService.updateRegion(region));
+    public R<Void> edit(@Validated @RequestBody RegionBo region) {
+        regionService.updateRegion(region);
+        return R.ok();
     }
 
     /**
      * 删除行政区划
      */
     @SaCheckPermission("system:region:remove")
-    @DeleteMapping("/{ids}")
-    public R<Void> remove(@PathVariable Long[] ids) {
-        return toAjax(regionService.deleteRegionByIds(Arrays.asList(ids)));
+    @Log(title = "行政区划", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{id}")
+    public R<Void> remove(@PathVariable Long id) {
+        regionService.deleteRegionById(id);
+        return R.ok();
     }
 }
 ```
@@ -196,22 +201,21 @@ public interface IRegionService {
 ```java
 package com.hny.system.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hny.system.domain.Region;
 import com.hny.system.domain.bo.RegionBo;
 import com.hny.system.domain.vo.RegionVo;
 import com.hny.system.mapper.RegionMapper;
 import com.hny.system.service.IRegionService;
-import com.hny.common.core.utils.MapstructUtils;
-import com.hny.common.core.utils.StringUtils;
-import com.hny.common.mybatis.core.page.PageQuery;
-import com.hny.common.mybatis.core.page.TableDataInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * 行政区划 服务层实现
@@ -223,33 +227,46 @@ public class RegionServiceImpl implements IRegionService {
     private final RegionMapper baseMapper;
 
     @Override
-    public List<RegionVo> selectRegionList(RegionBo region) {
-        Region entity = MapstructUtils.convert(region, Region.class);
-        List<Region> list = baseMapper.selectRegionList(entity);
-        return buildRegionTree(MapstructUtils.convert(list, RegionVo.class));
+    public List<RegionVo> selectRegionList(RegionBo regionBo) {
+        LambdaQueryWrapper<Region> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Region::getDelFlag, "0");
+        if (regionBo != null && regionBo.getFullName() != null && !regionBo.getFullName().isEmpty()) {
+            wrapper.like(Region::getFullName, regionBo.getFullName());
+        }
+        wrapper.orderByAsc(Region::getSortCode);
+        List<Region> list = baseMapper.selectList(wrapper);
+        List<RegionVo> voList = BeanUtil.copyToList(list, RegionVo.class);
+        return buildTree(voList);
     }
 
     @Override
     public List<RegionVo> selectRegionByParentId(Long parentId) {
-        List<Region> list = baseMapper.selectRegionByParentId(parentId);
-        return MapstructUtils.convert(list, RegionVo.class);
+        LambdaQueryWrapper<Region> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Region::getDelFlag, "0")
+               .eq(Region::getParentId, parentId)
+               .orderByAsc(Region::getSortCode);
+        List<Region> list = baseMapper.selectList(wrapper);
+        return BeanUtil.copyToList(list, RegionVo.class);
     }
 
     @Override
     public RegionVo selectRegionById(Long id) {
-        Region region = baseMapper.selectById(id);
-        return MapstructUtils.convert(region, RegionVo.class);
+        Region entity = baseMapper.selectById(id);
+        if (entity == null) {
+            return null;
+        }
+        return BeanUtil.toBean(entity, RegionVo.class);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int insertRegion(RegionBo region) {
-        Region entity = MapstructUtils.convert(region, Region.class);
+    public int insertRegion(RegionBo regionBo) {
+        Region entity = BeanUtil.toBean(regionBo, Region.class);
         // 设置父级路径
-        if (region.getParentId() != null && !"-1".equals(region.getParentId().toString())) {
-            Region parent = baseMapper.selectById(region.getParentId());
-            if (parent != null && StringUtils.isNotEmpty(parent.getTreePath())) {
-                entity.setTreePath(parent.getTreePath() + "," + region.getParentId());
+        if (regionBo.getParentId() != null && regionBo.getParentId() != 0) {
+            Region parent = baseMapper.selectById(regionBo.getParentId());
+            if (parent != null && parent.getTreePath() != null) {
+                entity.setTreePath(parent.getTreePath() + "," + regionBo.getParentId());
             }
         } else {
             entity.setTreePath("0");
@@ -259,13 +276,67 @@ public class RegionServiceImpl implements IRegionService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int updateRegion(RegionBo region) {
-        Region entity = MapstructUtils.convert(region, Region.class);
-        // 如果修改了父级，需要更新子节点的treePath
-        if (region.getParentId() != null) {
-            Region oldRegion = baseMapper.selectById(region.getId());
-            if (oldRegion != null && !oldRegion.getParentId().equals(region.getParentId())) {
-                // 更新子节点的treePath
+    public int updateRegion(RegionBo regionBo) {
+        Region entity = BeanUtil.toBean(regionBo, Region.class);
+        return baseMapper.updateById(entity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteRegionByIds(Collection<Long> ids) {
+        for (Long id : ids) {
+            if (hasChildByRegionId(id)) {
+                throw new RuntimeException("存在下级数据，无法删除");
+            }
+        }
+        return baseMapper.deleteBatchIds(ids);
+    }
+
+    @Override
+    public boolean hasChildByRegionId(Long id) {
+        LambdaQueryWrapper<Region> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Region::getParentId, id);
+        return baseMapper.selectCount(wrapper) > 0;
+    }
+
+    /**
+     * 构建树形结构
+     */
+    private List<RegionVo> buildTree(List<RegionVo> list) {
+        List<RegionVo> result = new ArrayList<>();
+        Map<Long, List<RegionVo>> map = new HashMap<>();
+        // 按parentId分组
+        for (RegionVo vo : list) {
+            Long parentId = vo.getParentId();
+            if (parentId == null) {
+                parentId = 0L;
+            }
+            map.computeIfAbsent(parentId, k -> new ArrayList<>()).add(vo);
+        }
+        // 构建树
+        for (RegionVo vo : list) {
+            Long parentId = vo.getParentId();
+            if (parentId == null || parentId == 0L) {
+                List<RegionVo> children = map.get(vo.getId());
+                if (children != null && !children.isEmpty()) {
+                    vo.setChildren(children);
+                    vo.setHasChildren(true);
+                } else {
+                    vo.setHasChildren(false);
+                }
+                vo.setIsLeaf(children == null || children.isEmpty());
+                result.add(vo);
+            }
+        }
+        return result;
+    }
+}
+```
+
+> 注意：实际开发中可简化使用，以下为核心要点：
+> - 使用 `BeanUtil.toBean()` 或 `BeanUtil.copyToList()` 进行对象转换
+> - 使用 `LambdaQueryWrapper` 构建查询条件（推荐）
+> - Controller 返回使用 `R.ok()` 而不是 `toAjax()` 或 `toR()`
                 updateChildRegionTreePath(region.getId(), region.getParentId());
             }
         }
@@ -705,24 +776,40 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
 ### Mapper XML规范
 
-- **文件位置**：`src/main/resources/mapper/module/RegionMapper.xml`
+> **重要提示**：本项目使用 MyBatis-Plus，推荐使用 `LambdaQueryWrapper` 在 Service 层构建查询条件。
+> 仅在 MyBatis-Plus 无法满足的复杂查询时才使用 XML。
+
+- **文件位置**：`src/main/resources/mapper/system/SysProductMapper.xml`
 - **命名空间**：必须与Mapper接口的全限定名一致
-- **resultMap定义**：使用 `RegionResult` 进行Vo对象映射
-- **查询逻辑**：
-  - 使用 `parent_id` 进行层级查询
-  - 使用 `tree_path` 进行路径查询（可选，用于批量操作）
-- **排序**：使用 `sort_code` 升序排列
+- **简化写法**：只定义自定义查询方法，简单的查询使用 Service 层 QueryWrapper
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hny.system.mapper.SysProductMapper">
+
+    <!-- 只定义自定义查询，简单查询用 Service 层 LambdaQueryWrapper -->
+    <select id="selectChildCount" resultType="Long">
+        select count(*) from sys_product where del_flag = '0' and parent_id = #{parentId}
+    </select>
+
+</mapper>
+```
 
 ## 模板规范
 
 ### 1. Controller层规范
 
 - **返回类型**：
-  - 列表：`R<List<RegionVo>>`（树形结构）
-  - 详情：`R<RegionVo>`
-  - 增删改：`R<Void>`
+  - 列表：直接返回 `List<Vo>`（树形结构不需要包装R）
+  - 详情：`R<Vo>`
+  - 增删改：先调用 service 方法，再返回 `R.ok()`
 
 - **无分页**：树形结构不需要分页查询
+
+- **注意**：不要使用 `toR()`、`toAjax()` 等不存在的方法，统一使用 `R.ok()`
 
 ### 2. Service层规范
 
