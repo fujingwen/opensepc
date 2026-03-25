@@ -439,6 +439,8 @@ public class ResourceServiceImpl implements IResourceService {
     @Override
     public int insertResource(ResourceBo resource) {
         Resource entity = MapstructUtils.convert(resource, Resource.class);
+        // 设置删除标志为0（未删除），否则查询时无法查到该记录
+        entity.setDelFlag("0");
         return baseMapper.insert(entity);
     }
 
@@ -927,13 +929,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
 - **del_flag 字段规范**：
   - 数据库字段名：`del_flag`
-  - 字段类型：`char(1)`
-  - 默认值：`'0'`
-  - 字段注释：`删除标志(0-存在,2-删除)`
+  - 字段类型：`char(1)` 或 `integer`
+  - 默认值：`0` 或 `'0'`
+  - 字段注释：`删除标志(0-存在,1-删除)` 或 `(0-存在,2-删除)`
   - Java 字段名：`delFlag`
-  - Java 类型：`String`
+  - Java 类型：`String` 或 `Integer`
   - 注解：`@TableLogic`
-  - MyBatis-Plus 会自动处理逻辑删除，查询时自动过滤已删除数据
+  - **重要**：新增数据时，必须在 Service 实现类中手动设置 `delFlag = 0`，否则插入的数据 del_flag 为 NULL，导致查询不到
 
 ### 4. Bo业务对象规范
 

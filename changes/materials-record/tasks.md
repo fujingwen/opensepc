@@ -6,7 +6,7 @@
 
 ## 2. 数据库设计
 
-- [x] 2.1 创建 mat_record 表结构
+- [x] 2.1 创建 t_record_product 表结构 (master.t_record_product)
 - [x] 2.2 创建备案证状态字典配置
 
 ## 3. 后端核心实现

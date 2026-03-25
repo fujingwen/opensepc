@@ -1,12 +1,11 @@
 ## Why
 
-为了满足建材行业的管理需求，需要创建建材填报管理模块，实现备案产品的规范化管理，提高工作效率和数据准确性。
+为了满足建材行业的管理需求，实现备案产品的规范化管理，提高工作效率和数据准确性。
 
 ## What Changes
 
-- 创建全新的建材填报管理模块，包含三个业务模块：工程项目、建材产品、备案产品
-- 优先实现备案产品的增删改查功能
-- 设计备案产品的数据模型和字段结构
+- 实现备案产品的增删改查功能
+- 数据模型基于现有数据库表 master.t_record_product
 - 实现前端页面和后端API接口
 - 集成到现有的权限管理体系中
 
@@ -14,14 +13,95 @@
 
 ### New Capabilities
 
-- `materials_module`: 建材填报管理模块的核心功能
 - `materials_record`: 备案产品的增删改查功能
+  - 数据表：master.t_record_product
+  - 关联表：master.t_companyinfo (生产企业，company_type=2)
 
-### Modified Capabilities
+### 功能详情
+
+#### 1. 列表功能
+- 分页查询备案产品列表
+- 支持按以下条件搜索：
+  - 生产企业名称（模糊查询）
+  - 统一社会信用代码
+  - 备案产品名称
+  - 备案证号
+  - 备案证状态（通过有效期计算）
+- 显示字段：
+  - 备案产品名称
+  - 生产企业名称（关联查询）
+  - 备案证号
+  - 统一社会信用代码
+  - 备案证有效期（开始日期 至 结束日期）
+  - 备案证状态（根据结束日期计算：已过期/有效）
+  - 创建时间
+- 操作列：详情、修改、删除
+
+#### 2. 新增功能
+- 弹出框表单
+- 字段：
+  - 备案产品名称（必填）
+  - 生产企业（下拉选择，数据来源于 master.t_companyinfo，company_type=2）
+  - 备案证号（必填）
+  - 统一社会信用代码
+  - 备案证有效期（日期范围选择，只精确到年月日）
+- 校验规则：
+  - 备案证号不能与现有记录重复
+- 自动设置 del_flag = 0
+
+#### 3. 修改功能
+- 弹出框表单（数据回显）
+- 生产企业下拉选择
+- 校验规则：
+  - 备案证号不能与现有记录重复（排除自身）
+
+#### 4. 详情功能
+- 只读弹出框
+- 显示字段：
+  - 备案产品名称
+  - 生产企业名称（直接回显，不需要请求接口）
+  - 备案证号
+  - 统一社会信用代码
+  - 备案证有效期
+
+#### 5. 删除功能
+- 批量删除
+- 业务规则：如果备案产品在项目产品表（master.t_project_product）中被使用（通过 record_no 关联），则无法删除
+
+#### 6. 导入功能
+- （待开发）
+
+## 数据关联
+
+### 关联查询
+- 列表查询使用 LEFT JOIN 关联 t_companyinfo 表
+- 根据 manufacture_id 关联查询 company_name 作为 manufactureName
+
+### 外键关系
+- t_record_product.manufacture_id → t_companyinfo.id
+
+## 技术实现
+
+### 后端
+- MatRecordController: REST接口
+- MatRecordService/IMatRecordService: 业务逻辑
+- MatRecordMapper: 数据访问
+- MatRecordMapper.xml: 自定义SQL（关联查询）
+
+### 前端
+- materials/record/index.vue: 备案产品管理页面
+- materials/record.js: API调用
+
+### 类型转换
+- 使用 LongStringTypeHandler 处理 create_by/update_by 字段（String类型）
+
+### 数据校验
+- 新增/修改时检查备案证号唯一性
+- 删除时检查是否被项目产品引用
 
 ## Impact
 
-- 后端：新增建材模块相关的Controller、Service、Mapper等文件
-- 前端：新增建材模块相关的页面组件和API调用
-- 数据库：新增建材相关的表结构
-- 权限：新增建材模块的菜单和权限配置
+- 后端：新增 MatRecordController、MatRecordService、MatRecordMapper、MatCompanyInfoController 等文件
+- 前端：新增备案产品管理页面 materials/record/index.vue
+- 数据库：使用已迁移的 master.t_record_product 表（6602条数据）+ master.t_companyinfo 表（company_type=2的企业）
+- 权限：新增 materials:record 系列权限配置

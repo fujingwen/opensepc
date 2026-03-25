@@ -39,3 +39,5 @@ rules:
   # 在执行项目时，记录问题规则
   issues: rules/issues-rules.md
   development: rules/development-rules.md
+  # 数据库迁移规则
+  database: rules/database-rules.md

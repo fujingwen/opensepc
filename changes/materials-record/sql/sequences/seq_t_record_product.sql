@@ -1,0 +1,3 @@
+-- 备案产品管理表 Sequence
+CREATE SEQUENCE IF NOT EXISTS "master"."seq_t_record_product"
+  START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;

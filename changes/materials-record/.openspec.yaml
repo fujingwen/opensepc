@@ -1,2 +1,9 @@
 schema: spec-driven
 created: 2026-03-03
+updated: 2026-03-24
+description: 建材填报管理模块 - 备案产品管理
+database:
+  table: master.t_record_product
+  schema: master
+dependencies:
+  - base-companyinfo

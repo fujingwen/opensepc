@@ -14,38 +14,59 @@
 
 ### 表结构
 
-**表名**: `mat_record`
+**表名**: `master.t_record_product`
 
 | 字段名 | 数据类型 | 约束 | 描述 |
 |-------|---------|------|------|
-| `id` | `BIGINT` | `PRIMARY KEY` | 主键ID |
-| `enterprise_name` | `VARCHAR(255)` | `NOT NULL` | 生产企业名称 |
-| `social_credit_code` | `VARCHAR(18)` | | 统一社会信用代码 |
-| `product_name` | `VARCHAR(255)` | `NOT NULL` | 备案产品名称 |
-| `certificate_number` | `VARCHAR(100)` | | 备案证号 |
-| `start_validity` | `DATE` | `NOT NULL` | 备案证有效期开始日期 |
-| `end_validity` | `DATE` | `NOT NULL` | 备案证有效期结束日期 |
-| `certificate_status` | `VARCHAR(20)` | | 备案证状态（字典） |
-| `del_flag` | `CHAR(1)` | | 删除标志（0存在 2删除） |
-| `tenant_id` | `VARCHAR(20)` | | 租户编号 |
-| `create_by` | `VARCHAR(64)` | | 创建者 |
-| `create_time` | `DATETIME` | | 创建时间 |
-| `update_by` | `VARCHAR(64)` | | 更新者 |
-| `update_time` | `DATETIME` | | 更新时间 |
+| `id` | `VARCHAR(50)` | `PRIMARY KEY` | 主键ID |
+| `record_product_name` | `VARCHAR(2000)` | | 备案产品名称 |
+| `manufactur` | `VARCHAR(500)` | | 生产厂家名称 |
+| `manufacture_id` | `VARCHAR(50)` | `FOREIGN KEY` | 生产企业ID(关联t_companyinfo.id) |
+| `record_no` | `VARCHAR(200)` | | 备案证号 |
+| `begin_time` | `TIMESTAMP` | | 备案证有效开始时间 |
+| `end_time` | `TIMESTAMP` | | 备案证有效结束时间 |
+| `enabled_mark` | `INTEGER` | | 是否可用(0-禁用,1-正常) |
+| `social_credit_code` | `VARCHAR(255)` | | 统一社会信用代码 |
+| `send_flag` | `INTEGER` | | 发送标志(0-未发送,1-已发送) |
+| `del_flag` | `INTEGER` | | 删除标志(0-存在,1-删除) |
+| `delete_time` | `TIMESTAMP` | | 删除时间 |
+| `delete_by` | `VARCHAR(50)` | | 删除人 |
+| `tenant_id` | `VARCHAR(50)` | | 租户ID(默认值:000000) |
+| `create_dept` | `VARCHAR(50)` | | 创建部门(默认值:103) |
+| `create_by` | `VARCHAR(50)` | | 创建人 |
+| `create_time` | `TIMESTAMP` | | 创建时间 |
+| `update_by` | `VARCHAR(50)` | | 更新人 |
+| `update_time` | `TIMESTAMP` | | 更新时间 |
+
+### 关联关系
+
+- `manufacture_id` 外键关联 `master.t_companyinfo(id)`，且 `company_type = 2` (生产企业)
 
 ### 字典配置
 
-**字典类型**: `certificate_status`
-**字典名称**: 备案证状态
-**配置方式**: 在前端"系统管理-字典管理"中配置
+**字典1: 是否可用 (enabled_mark)**
+
+**字典类型**: `record_enabled_mark`
+**字典名称**: 是否可用
 **字典值**:
 
 | 字典标签 | 字典值 | 样式类 | 是否默认 | 排序 |
 |---------|-------|--------|---------|------|
-| 未过期 | 0 | success | Y | 1 |
-| 已过期 | 1 | danger | N | 2 |
+| 禁用 | 0 | danger | N | 1 |
+| 正常 | 1 | success | Y | 2 |
 
-**调用方式**: `const { certificate_status } = proxy.useDict('certificate_status')`
+**字典2: 发送标志 (send_flag)**
+
+**字典类型**: `send_flag`
+**字典名称**: 发送标志
+**字典值**:
+
+| 字典标签 | 字典值 | 样式类 | 是否默认 | 排序 |
+|---------|-------|--------|---------|------|
+| 未发送 | 0 | info | Y | 1 |
+| 已发送 | 1 | success | N | 2 |
+
+**调用方式**: `const { record_enabled_mark, send_flag } = proxy.useDict('record_enabled_mark', 'send_flag')`
 
 ## 3. 接口设计
 
@@ -55,11 +76,12 @@
 **请求方法**: `GET`
 **参数**:
 
-- `enterpriseName` (String): 生产企业名称（模糊查询）
+- `recordProductName` (String): 备案产品名称（模糊查询）
+- `manufactur` (String): 生产厂家（模糊查询）
+- `recordNo` (String): 备案证号（精确查询）
 - `socialCreditCode` (String): 统一社会信用代码（精确查询）
-- `productName` (String): 备案产品名称（模糊查询）
-- `certificateNumber` (String): 备案证号（模糊查询）
-- `certificateStatus` (String): 备案证状态（字典查询）
+- `enabledMark` (Integer): 是否可用（精确查询）
+- `sendFlag` (Integer): 发送标志（精确查询）
 - `pageNum` (Integer): 页码
 - `pageSize` (Integer): 每页条数
 
@@ -73,14 +95,16 @@
     "total": 100,
     "rows": [
       {
-        "id": 1,
-        "enterpriseName": "XX建材有限公司",
-        "socialCreditCode": "91110000XXXXXXXXXX",
-        "productName": "XX水泥",
-        "certificateNumber": "BC20230001",
-        "startValidity": "2023-01-01",
-        "endValidity": "2025-12-31",
-        "certificateStatus": "0",
+        "id": "294668673870726405",
+        "recordProductName": "蒸压加气混凝土砌块",
+        "manufactur": "青岛盛佳泰新型材料有限公司",
+        "manufactureId": "294668667059176709",
+        "recordNo": "QJB-02133270",
+        "beginTime": "2023-01-01 00:00:00",
+        "endTime": "2025-12-31 23:59:59",
+        "enabledMark": 1,
+        "socialCreditCode": "91370200XXXXXXXXXX",
+        "sendFlag": 0,
         "createTime": "2023-01-01 10:00:00"
       }
     ]
@@ -94,7 +118,7 @@
 **请求方法**: `GET`
 **参数**:
 
-- `id` (Long): 备案产品ID
+- `id` (String): 备案产品ID
 
 **响应**:
 
@@ -103,14 +127,16 @@
   "code": 200,
   "msg": "操作成功",
   "data": {
-    "id": 1,
-    "enterpriseName": "XX建材有限公司",
-    "socialCreditCode": "91110000XXXXXXXXXX",
-    "productName": "XX水泥",
-    "certificateNumber": "BC20230001",
-    "startValidity": "2023-01-01",
-    "endValidity": "2025-12-31",
-    "certificateStatus": "0"
+    "id": "294668673870726405",
+    "recordProductName": "蒸压加气混凝土砌块",
+    "manufactur": "青岛盛佳泰新型材料有限公司",
+    "manufactureId": "294668667059176709",
+    "recordNo": "QJB-02133270",
+    "beginTime": "2023-01-01 00:00:00",
+    "endTime": "2025-12-31 23:59:59",
+    "enabledMark": 1,
+    "socialCreditCode": "91370200XXXXXXXXXX",
+    "sendFlag": 0
   }
 }
 ```
@@ -123,13 +149,14 @@
 
 ```json
 {
-  "enterpriseName": "XX建材有限公司",
-  "socialCreditCode": "91110000XXXXXXXXXX",
-  "productName": "XX水泥",
-  "certificateNumber": "BC20230001",
-  "startValidity": "2023-01-01",
-  "endValidity": "2025-12-31",
-  "certificateStatus": "0"
+  "recordProductName": "蒸压加气混凝土砌块",
+  "manufactureId": "294668667059176709",
+  "recordNo": "QJB-02133270",
+  "beginTime": "2023-01-01 00:00:00",
+  "endTime": "2025-12-31 23:59:59",
+  "enabledMark": 1,
+  "socialCreditCode": "91370200XXXXXXXXXX",
+  "sendFlag": 0
 }
 ```
 
@@ -151,14 +178,15 @@
 
 ```json
 {
-  "id": 1,
-  "enterpriseName": "XX建材有限公司",
-  "socialCreditCode": "91110000XXXXXXXXXX",
-  "productName": "XX水泥",
-  "certificateNumber": "BC20230001",
-  "startValidity": "2023-01-01",
-  "endValidity": "2025-12-31",
-  "certificateStatus": "0"
+  "id": "294668673870726405",
+  "recordProductName": "蒸压加气混凝土砌块",
+  "manufactureId": "294668667059176709",
+  "recordNo": "QJB-02133270",
+  "beginTime": "2023-01-01 00:00:00",
+  "endTime": "2025-12-31 23:59:59",
+  "enabledMark": 1,
+  "socialCreditCode": "91370200XXXXXXXXXX",
+  "sendFlag": 0
 }
 ```
 
@@ -178,7 +206,7 @@
 **请求方法**: `DELETE`
 **参数**:
 
-- `ids` (Long[]): ID数组
+- `ids` (String[]): ID数组
 
 **响应**:
 
@@ -196,12 +224,13 @@
 **请求方法**: `POST`
 **参数**:
 
-- `enterpriseName` (String): 生产企业名称（模糊查询）
+- `recordProductName` (String): 备案产品名称（模糊查询）
+- `manufactur` (String): 生产厂家（模糊查询）
+- `recordNo` (String): 备案证号（精确查询）
 - `socialCreditCode` (String): 统一社会信用代码（精确查询）
-- `productName` (String): 备案产品名称（模糊查询）
-- `certificateNumber` (String): 备案证号（模糊查询）
-- `certificateStatus` (String): 备案证状态（字典查询）
-- `ids` (List<Long>): 选中的ID列表（可选，如果不传则导出所有符合条件的数据）
+- `enabledMark` (Integer): 是否可用（精确查询）
+- `sendFlag` (Integer): 发送标志（精确查询）
+- `ids` (List<String>): 选中的ID列表（可选，如果不传则导出所有符合条件的数据）
 
 **响应**: Excel文件下载
 
@@ -277,7 +306,7 @@ export function exportRecord(query) {
 
 ### 4.4 前端实现要点
 
-1. **字典使用**：使用 `proxy.useDict('certificate_status')` 调用字典
+1. **字典使用**：使用 `proxy.useDict('record_enabled_mark', 'send_flag')` 调用字典
 2. **文件下载**：使用 `proxy.download('materials/record/export', { ...queryParams.value, ids: ids.value }, filename)` 下载文件
 3. **表单 label-width**：根据最长文本计算（字数*20，最小120px）
 4. **输入框**：所有输入框都添加 `clearable` 属性
@@ -328,7 +357,7 @@ export function exportRecord(query) {
   - 修改按钮：materials:record:edit
   - 删除按钮：materials:record:remove
 
-## 7. ADDED Requirements
+## ADDED Requirements
 
 ### Requirement: 备案产品数据模型
 
@@ -338,23 +367,23 @@ export function exportRecord(query) {
 
 - **Given** 需要存储备案产品信息
 - **When** 设计数据库表结构
-- **Then** 创建 `mat_record` 表
-- **Then** 包含生产企业名称、统一社会信用代码、备案产品名称等字段
-- **Then** 将备案证有效期拆分为开始日期和结束日期（start_validity和end_validity）
-- **Then** 添加备案证状态字段（字典类型）
+- **Then** 创建 `master.t_record_product` 表
+- **Then** 包含备案产品名称、生产厂家(关联t_companyinfo)、备案证号等字段
+- **Then** 将备案证有效期拆分为开始时间和结束时间（begin_time, end_time）
+- **Then** 添加是否可用字段（enabled_mark，字典类型）
 - **Then** 添加删除标志字段（del_flag）用于逻辑删除
 
-### Requirement: 备案证状态字典
+### Requirement: 字典配置
 
-系统 SHALL 配置备案证状态的字典数据，包括字典类型、名称和字典值。
+系统 SHALL 配置备案产品相关的字典数据。
 
-#### Scenario: 配置备案证状态字典
+#### Scenario: 配置字典数据
 
-- **Given** 备案证状态需要使用字典管理
+- **Given** 备案产品需要使用字典管理
 - **When** 配置字典数据
-- **Then** 创建 `certificate_status` 字典类型
-- **Then** 添加未过期（0）和已过期（1）两个字典值
-- **Then** 设置对应样式类为 success 和 danger
+- **Then** 创建 `record_enabled_mark` 字典类型（是否可用）
+- **Then** 添加禁用（0）和正常（1）两个字典值
+- **Then** 创建 `send_flag` 字典类型（发送标志）
 
 ### Requirement: 备案产品CRUD接口
 
