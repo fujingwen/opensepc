@@ -234,6 +234,50 @@
 
 **响应**: Excel文件下载
 
+### 3.7 下载导入模板
+
+**请求路径**: `/materials/record/importTemplate`
+**请求方法**: `POST`
+**参数**: 无
+
+**响应**: Excel文件下载
+
+**模板说明**:
+
+- 字段顺序：企业名称、产品名称、备案证号、有效期限、联系人、联系电话、地址
+- 包含一行示例数据：
+  - 企业名称：生产企业的名称
+  - 产品名称：备案产品的名称
+  - 备案证号：QJB-********
+  - 有效期限：2021年03月08日—2023年03月07日
+  - 联系人：[示例]
+  - 联系电话：[示例]
+  - 地址：[示例]
+- 最后一列下一列显示"此行是示例数据，导入前请删除"
+
+### 3.8 导入备案产品
+
+**请求路径**: `/materials/record/importData`
+**请求方法**: `POST`
+**参数**:
+
+- `file` (File): Excel文件
+- `updateSupport` (Boolean): 是否覆盖已存在的数据（默认false）
+
+**响应**:
+
+```json
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": {
+    "successCount": 100,
+    "failureCount": 0,
+    "failures": []
+  }
+}
+```
+
 ## 4. 前端实现
 
 ### 4.1 页面结构
@@ -300,6 +344,25 @@ export function exportRecord(query) {
     url: '/materials/record/export',
     method: 'post',
     data: query
+  })
+}
+
+export function downloadRecordTemplate() {
+  return request({
+    url: '/materials/record/importTemplate',
+    method: 'post',
+    responseType: 'blob'
+  })
+}
+
+export function importRecordData(data) {
+  return request({
+    url: '/materials/record/importData',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 ```
@@ -427,3 +490,33 @@ export function exportRecord(query) {
 - **Then** 如果传入了 ids，导出选中的数据
 - **Then** 如果没有传入 ids，导出查询条件下的所有数据
 - **Then** 前端传递 ids 参数，支持选择部分数据导出
+
+### Requirement: 导入模板下载功能
+
+系统 SHALL 实现备案产品导入模板的下载功能，提供标准格式的Excel模板。
+
+#### Scenario: 下载导入模板
+
+- **Given** 用户需要导入备案产品数据
+- **When** 下载导入模板
+- **Then** 创建 Excel 导入模板 VO 类（MatRecordImportVo）
+- **Then** 模板字段顺序：企业名称、产品名称、备案证号、有效期限、联系人、联系电话、地址
+- **Then** 模板包含一行示例数据
+- **Then** 示例数据前四个字段：生产企业的名称、备案产品的名称、QJB-********、2021年03月08日—2023年03月07日
+- **Then** 最后一列下一列显示"此行是示例数据，导入前请删除"
+- **Then** 实现下载接口 `/materials/record/importTemplate`
+
+### Requirement: 批量导入功能
+
+系统 SHALL 实现备案产品的批量导入功能，支持Excel文件上传和数据预览。
+
+#### Scenario: 批量导入备案产品
+
+- **Given** 用户需要批量导入备案产品数据
+- **When** 上传Excel文件
+- **Then** 解析Excel文件，按照模板格式读取数据
+- **Then** 支持最多导入1000条数据
+- **Then** 导入前预览数据，支持编辑和删除
+- **Then** 支持覆盖已存在的数据选项
+- **Then** 实现导入接口 `/materials/record/importData`
+- **Then** 返回导入结果（成功数量、失败数量、失败详情）

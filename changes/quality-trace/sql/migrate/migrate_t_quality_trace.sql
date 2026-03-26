@@ -1,0 +1,58 @@
+-- ----------------------------
+-- Migrate t_quality_trace from test to master
+-- ----------------------------
+
+INSERT INTO "master"."t_quality_trace" (
+    "id",
+    "tenant_id",
+    "original_id",
+    "check_organize",
+    "project_no",
+    "project_name",
+    "product_name",
+    "factory_name",
+    "batch",
+    "check_project_name",
+    "data_status",
+    "is_collect",
+    "conclusion_mark",
+    "conclusion",
+    "report_time",
+    "check_time",
+    "enabled_mark",
+    "create_by",
+    "create_time",
+    "update_by",
+    "update_time",
+    "delete_by",
+    "delete_time",
+    "del_flag",
+    "create_dept"
+)
+SELECT
+    "F_Id" AS "id",
+    '000000' AS "tenant_id",
+    "F_OriginalId" AS "original_id",
+    "F_CheckOrganize" AS "check_organize",
+    "F_ProjectNo" AS "project_no",
+    "F_ProjectName" AS "project_name",
+    "F_ProductName" AS "product_name",
+    "F_FactoryName" AS "factory_name",
+    "F_Batch" AS "batch",
+    "F_CheckProjectName" AS "check_project_name",
+    "F_DataStatus" AS "data_status",
+    "F_IsCollect" AS "is_collect",
+    "F_ConclusionMark" AS "conclusion_mark",
+    "F_Conclusion" AS "conclusion",
+    "F_ReportTime" AS "report_time",
+    "F_CheckTime" AS "check_time",
+    "F_EnabledMark" AS "enabled_mark",
+    "F_CreatorUserId" AS "create_by",
+    "F_CreatorTime" AS "create_time",
+    "F_LastModifyUserId" AS "update_by",
+    "F_LastModifyTime" AS "update_time",
+    "F_DeleteUserId" AS "delete_by",
+    "F_DeleteTime" AS "delete_time",
+    COALESCE("F_DeleteMark", 0) AS "del_flag",
+    '103' AS "create_dept"
+FROM "test"."t_quality_trace";
