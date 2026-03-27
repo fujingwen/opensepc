@@ -1,0 +1,4 @@
+数据库连接信息：
+url: jdbc:postgresql://192.168.0.77:15432/building_supplies_supervision?currentSchema=master&useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true
+username: postgres
+password: zAIgc4xm5Bcax*os
