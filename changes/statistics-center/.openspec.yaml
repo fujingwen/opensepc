@@ -1,0 +1,13 @@
+schema: spec-driven
+created: 2026-03-28
+updated: 2026-03-28
+description: 统计中心模块，包含统计分析与采购价格分析两个页面
+database:
+  schema: master
+  tables:
+    - master.t_project_product
+    - master.t_project
+    - master.t_companyinfo
+dependencies:
+  - materials-project
+  - materials-product

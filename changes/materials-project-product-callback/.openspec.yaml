@@ -1,0 +1,13 @@
+schema: spec-driven
+created: 2026-03-28
+updated: 2026-03-28
+description: 工程项目与建材产品主链路回调，并定义质量追溯依赖顺序
+database:
+  schema: master
+  tables:
+    - master.t_project
+    - master.t_project_product
+dependencies:
+  - base-companyinfo
+  - system-product
+  - system-region

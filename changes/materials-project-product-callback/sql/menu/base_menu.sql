@@ -1,0 +1,3 @@
+-- This change keeps the existing menu and route entries stable.
+-- No new menu rows are created here; existing materials project/product menus
+-- continue to be used while their backing tables are switched.

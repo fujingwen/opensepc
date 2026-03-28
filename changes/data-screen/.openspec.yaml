@@ -1,0 +1,19 @@
+schema: spec-driven
+created: 2026-03-28
+updated: 2026-03-28
+description: 数据大屏模块，包含 L7 区市地图、汇总卡片、统计图表与缺陷建材滚动榜
+database:
+  schema: master
+  tables:
+    - master.t_project
+    - master.t_project_product
+    - master.t_record_product
+    - master.t_companyinfo
+    - master.t_quality_trace
+    - master.base_region
+    - master.base_dictionarytype
+dependencies:
+  - materials-project
+  - materials-product
+  - statistics-center
+  - quality-trace

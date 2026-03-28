@@ -1,0 +1,22 @@
+-- Sequences for message center and notice announcement
+
+CREATE SEQUENCE IF NOT EXISTS "master"."seq_msg_message"
+  INCREMENT 1
+  MINVALUE 1
+  MAXVALUE 999999999999999999
+  START 1
+  CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS "master"."seq_msg_message_user"
+  INCREMENT 1
+  MINVALUE 1
+  MAXVALUE 999999999999999999
+  START 1
+  CACHE 1;
+
+CREATE SEQUENCE IF NOT EXISTS "master"."seq_msg_notice_publish"
+  INCREMENT 1
+  MINVALUE 1
+  MAXVALUE 999999999999999999
+  START 1
+  CACHE 1;
