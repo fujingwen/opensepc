@@ -9,6 +9,13 @@
 
 因此需要先做一个统一的回调变更，把工程项目与建材产品的主链路纠正到 `master.t_project`、`master.t_project_product`，再以此作为质量追溯模块落地前提。
 
+## Supersedes
+
+本变更已整合并替代以下两个旧提案，后续不再以它们为继续开发依据：
+
+- ~~`materials-project`~~（工程项目，已合并到本变更第一阶段）
+- ~~`materials-product`~~（建材产品，已合并到本变更第一阶段）
+
 ## What Changes
 
 - 新建 `materials-project-product-callback` 变更。

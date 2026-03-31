@@ -1,7 +1,7 @@
 schema: spec-driven
 created: 2026-03-28
-updated: 2026-03-28
-description: 工程项目与建材产品主链路回调，并定义质量追溯依赖顺序
+updated: 2026-03-31
+description: 工程项目与建材产品主链路回调（已整合 materials-project 和 materials-product），并定义质量追溯依赖顺序
 database:
   schema: master
   tables:

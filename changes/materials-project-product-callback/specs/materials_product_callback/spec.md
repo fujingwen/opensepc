@@ -19,6 +19,17 @@
 - **When** 用户新增、编辑、删除或导出建材产品
 - **Then** 系统应围绕 `master.t_project_product` 完成处理
 
+### Requirement: 建材产品关联企业主表
+
+系统 SHALL 通过企业主表 `t_companyinfo` 补齐建材产品的企业名称展示信息。
+
+#### Scenario: 关联企业名称
+
+- **Given** 建材产品存在生产企业 ID（`manufacturer_id`）或供应商 ID（`supplier_id`）
+- **When** 系统展示企业名称和地区
+- **Then** 应通过 `master.t_companyinfo` 解释对应名称与地区
+- **Then** 不得直接使用旧文本字段硬编码企业名称
+
 ### Requirement: 保持原业务入口稳定
 
 系统 SHALL 在回调主承载表时保留原有菜单路径与接口路径。

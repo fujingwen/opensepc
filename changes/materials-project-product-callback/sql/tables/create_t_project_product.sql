@@ -1,7 +1,7 @@
 -- 在master模式下创建t_project_product表
 -- 参考test模式下表结构，去掉F_前缀
 
-CREATE TABLE "master"."t_project_product" (
+CREATE TABLE IF NOT EXISTS "master"."t_project_product" (
   "id" character varying(50) NOT NULL,
   "project_id" character varying(50),
   "product_type" character varying(100),

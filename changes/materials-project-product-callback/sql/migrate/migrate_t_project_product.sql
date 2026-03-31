@@ -121,4 +121,5 @@ SELECT
     COALESCE("F_LastModifyTime", NOW())::timestamp AS "update_time",
     CASE WHEN COALESCE("F_DeleteMark", 0) = 1 THEN 2 ELSE 0 END AS "del_flag",
     '103' AS "create_dept"
-FROM "test"."t_project_product";
+FROM "test"."t_project_product"
+ON CONFLICT (id) DO NOTHING;
