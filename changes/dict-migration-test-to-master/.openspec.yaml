@@ -1,0 +1,10 @@
+schema: spec-driven
+created: 2026-03-31
+updated: 2026-03-31
+description: 将 test.base_dictionarytype 和 test.base_dictionarydata 中的非树形字典数据迁移到 master.sys_dict_type 和 master.sys_dict_data
+database:
+  schema: master
+  tables:
+    - master.sys_dict_type
+    - master.sys_dict_data
+dependencies: []

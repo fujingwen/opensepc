@@ -36,6 +36,13 @@
 8. ~~前端列表展示字段、新增页面字段与设计文档不一致~~
    - **已解决**：按照设计文档顺序调整列表和新增页面字段，修正文件上传限制
 
+## 新问题
+
+1. 在工程项目页面，工程进度是字典，之前在master.sys_dict_type中配置了`project_progress`字典，但是这个是不正确的，我需要用test.base_dictionarytype中的字典，也就是需要将test.base_dictionarytype和test.base_dictionarydata这两个表的数据迁移到master.sys_dict_type和master.sys_dict_data这两个表中。迁移规则是：test.base_dictionarytype表中F_IsTree字段为0的记录，以及对应test.base_dictionarydata表中的数据，迁移到master.sys_dict_type和master.sys_dict_data这两个表中。调用.trae\skills\database-config-manager\SKILL.md技能连接数据库，先写一个单独的提案，然后执行迁移，注意不要把原有的数据删掉。提案规则是：.trae\skills\openspec-new-change\SKILL.md技能
+   1. 注意dict data不是全部迁移，而是关联了被迁移的dict type的，才迁移
+   2. test.base_dictionarytype和test.base_dictionarydata这两个表的数据迁移到master.sys_dict_type和master.sys_dict_data这两个表
+   3. 注意检查是否有编码冲突，如果有，则单独标记出来，不进行迁移。
+
 ## 待验证事项
 
 - 权限控制验证（`materials:product:list`、`materials:product:query`、`materials:product:add` 等）
