@@ -123,6 +123,7 @@ CREATE TABLE master.base_region (
 - GET /api/base/companyinfo/list - 分页查询，权限：base:companyinfo:query
   - 参数：companyType（企业类型 1/2/3）, companyName（企业名称模糊查询）
 - POST /api/base/companyinfo - 新增，权限：base:companyinfo:add
+  - 新增企业时自动创建用户，默认密码为 `Hny@2022`（配置项 `sys.user.initPassword`）
 - PUT /api/base/companyinfo - 修改，权限：base:companyinfo:edit
 - DELETE /api/base/companyinfo/{id} - 删除，权限：base:companyinfo:remove
 - GET /api/base/companyinfo/export - 导出Excel，权限：base:companyinfo:export

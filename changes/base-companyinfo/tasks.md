@@ -2,35 +2,41 @@
 
 ## 数据库
 
-- [ ] 1. 创建省市区表 base_region（如尚未存在）
-- [ ] 2. 导入省市区初始化数据 base_region_data.sql
-- [ ] 3. 确保 t_companyinfo 表已存在（如尚未存在则创建）
-- [ ] 4. 创建企业信息管理菜单 SQL (base_companyinfo_menu.sql)
-- [ ] 5. 创建企业类型字典 SQL (base_companyinfo_dict.sql)
+- [x] 1. 确认 `t_companyinfo` 表结构满足统一存储三类企业信息
+- [x] 2. 确认 `base_province` 表可用于地区名称反查
+- [x] 3. 确认企业管理菜单与权限 SQL 已部署
 
 ## 后端
 
-- [x] 6. 创建 BaseCompanyInfo 实体类
-- [x] 7. 创建 BaseCompanyInfoVo 视图对象
-- [x] 8. 创建 BaseCompanyInfoMapper 接口
-- [x] 9. 创建 IBaseCompanyInfoService 接口
-- [x] 10. 创建 BaseCompanyInfoServiceImpl 实现类
-- [x] 11. 创建 BaseCompanyInfoController 控制器
-- [x] 12. 实现分页查询接口
-- [x] 13. 实现新增接口
-- [x] 14. 实现修改接口
-- [x] 15. 实现删除接口
-- [x] 16. 实现导出接口
+- [x] 4. 创建 `BaseCompanyInfo` 实体、Mapper、Service、Controller
+- [x] 5. 实现施工企业、生产企业、代理商分页查询接口
+- [x] 6. 实现新增、编辑、删除、导出接口
+- [x] 7. 新增企业时自动创建用户并分配角色（默认密码 `Hny@2022`，配置项 `sys.user.initPassword`）
+- [x] 8. 修正企业信息查询返回字段，确保 `enterpriseName`、`contactPerson` 正确回填
+- [x] 9. 解析 `area` 中的地区 ID，并关联 `base_province.full_name` 组装 `region`
+- [x] 10. 为接口补充 `provinceCode/provinceName/cityCode/cityName/districtCode/districtName`
+- [x] 11. 为代理商查询补充 `productionId`、所属生产企业名称和 `agentName`
+- [x] 12. 支持代理商按 `agentName` 查询
+- [x] 13. 修正create_by字段值使用实际用户ID而非"admin"
+- [x] 14. 修正update_by字段值使用实际用户ID而非"admin"
 
-## 前端（复用现有页面，统一 API 文件）
+## 前端
 
-- [x] 17. 复用现有页面 views/base/production/index.vue（生产企业）
-- [x] 18. 复用现有页面 views/base/construction/index.vue（施工企业）
-- [x] 19. 复用现有页面 views/base/agent/index.vue（代理商）
-- [x] 20. 创建统一 API 文件 api/base/companyinfo.js，删除旧的 production.js, construction.js, agent.js
-- [x] 21. 更新前端页面导入路径为 @/api/base/companyinfo
+- [x] 15. 复用施工企业页面 `views/base/construction/index.vue`
+- [x] 16. 复用生产企业页面 `views/base/production/index.vue`
+- [x] 17. 复用代理商页面 `views/base/agent/index.vue`
+- [x] 18. 统一企业管理 API 文件 `api/base/companyinfo.js`
+- [x] 19. 页面按统一返回字段消费企业名称、联系人和地区信息
+- [x] 20. 代理商页面使用 `enterpriseName`、`agentName`、`productionId` 完成列表和回显
+- [x] 21. 修正权限标识，确保与数据库中实际权限标识一致
+- [x] 22. 优化 `EnterpriseSelect` 组件，支持生产企业下拉选择（不分页）
+- [x] 23. 优化 `getProductions` 接口，只返回enterpriseName和id字段
 
-## 数据迁移
+## 验证
 
-- [x] 23. 删除 base_production、base_construction、base_agent 表（如存在）
-- [x] 24. 确保只使用 t_companyinfo 表存储企业数据
+- [x] 24. 验证施工企业列表与详情返回企业名称、联系人、地区中文名
+- [x] 25. 验证生产企业列表与详情返回企业名称、联系人、地区中文名
+- [x] 26. 验证代理商列表与详情返回所属生产企业、代理商名称、地区中文名
+- [x] 27. 验证代理商编辑页可回显所属生产企业与省市区
+- [x] 28. 验证用户创建时密码已正确加密（BCrypt.hashpw）
+- [x] 29. 验证create_by和update_by字段使用实际用户ID

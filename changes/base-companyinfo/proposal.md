@@ -2,241 +2,99 @@
 
 ## Why
 
-系统需要对企业进行统一管理，当前通过 `t_companyinfo` 表的 `company_type` 字段区分三种企业类型：
+系统已经基于 `t_companyinfo` 统一存储施工企业、生产企业、代理商三类企业信息，但当前企业信息管理接口与页面字段口径不一致，导致页面展示与编辑回显存在明显缺失：
 
-- `company_type = 1`: 施工企业
-- `company_type = 2`: 生产企业
-- `company_type = 3`: 代理商
+- 企业列表和详情接口返回的 `enterpriseName`、`contactPerson` 为空
+- 地区字段返回的是 `["37","3706","370681"]` 这类行政区划 ID 数组，前端无法直接展示中文名称
+- 代理商页面缺少“所属生产企业”和“代理商名称”两个关键字段
 
-需要实现对这三类企业的完整CRUD管理功能。
+这些问题会直接影响三个页面的列表展示、详情查看、编辑回显和下拉选择体验，因此需要将接口返回结构和字段语义补齐，并同步更新提案与规格，确保实现、联调和验收使用同一套定义。
 
 ## What Changes
 
-- 新增"施工企业管理"页面（F_TYPE=1）：实现新增、删除、修改、查询、导出功能
-- 新增"生产企业管理"页面（F_TYPE=2）：实现新增、删除、修改、查询、导出功能
-- 新增"代理商管理"页面（F_TYPE=3）：实现新增、删除、修改、查询、导出功能
-- 实现省市区三级联动选择功能
-- 实现电话号码格式验证
-- 实现数据导出功能
-- **新增企业时自动创建用户并分配角色**
-  - 新增生产企业时：自动在 `sys_user` 表创建用户，分配"生产单位人员"角色
-  - 新增施工企业时：自动在 `sys_user` 表创建用户，分配"施工单位人员"角色
-  - 新增代理商时：自动在 `sys_user` 表创建用户，分配"供应商人员"角色
+- 继续使用 `t_companyinfo` 统一管理三类企业数据，通过 `company_type` 区分：
+  - `company_type = 1`：施工企业
+  - `company_type = 2`：生产企业
+  - `company_type = 3`：代理商
+- 明确企业信息接口返回字段语义：
+  - 普通企业页面返回 `enterpriseName` 表示企业名称
+  - 代理商页面返回 `enterpriseName` 表示所属生产企业名称
+  - 代理商页面新增返回 `agentName` 表示代理商名称
+  - 接口统一返回 `contactPerson` 作为联系人
+- 明确地区字段返回规则：
+  - `area` 允许继续存储地区 ID 数组字符串
+  - 查询接口必须基于 `base_province` 表按 ID 关联 `full_name`
+  - 返回 `provinceCode/provinceName/cityCode/cityName/districtCode/districtName`
+  - 返回 `region`，格式为 `省/市/区`，例如 `山东省/青岛市/李沧区`
+- 明确代理商与生产企业关系：
+  - `parent_id` 存储所属生产企业 ID
+  - 查询接口返回 `productionId`
+  - 代理商列表、详情、编辑回显都必须能展示所属生产企业名称
+- 保持新增企业时自动创建用户并分配角色的原有能力不变
+- 明确新增企业时自动创建用户的默认密码为 `Hny@2022`（配置项 `sys.user.initPassword`）
 
 ## Capabilities
 
 ### New Capabilities
 
-- `base_companyinfo`: 企业信息管理，通过 company_type 字段区分三种类型
-  - 施工企业管理（company_type=1）
-  - 生产企业管理（company_type=2）
-  - 代理商管理（company_type=3）
+- `base_companyinfo`：统一的企业信息管理能力
+  - 施工企业管理
+  - 生产企业管理
+  - 代理商管理
+- 企业信息查询结果组装能力
+  - 字段别名转换：`company_name -> enterpriseName/agentName`
+  - 联系人字段转换：`contact_user -> contactPerson`
+  - 行政区划名称填充：`地区 ID -> 中文 full_name`
+  - 代理商父企业名称回填：`parent_id -> enterpriseName`
 
 ### Modified Capabilities
 
-- 统一使用 t_companyinfo 表存储所有企业信息，废弃独立的 base_production、base_construction、base_agent 表
-- 新增企业时自动关联创建系统用户（自动创建用户+分配角色）
+- 企业信息接口返回结构从“数据库原始字段映射”调整为“页面可直接消费的视图对象”
+- 地区展示从原始 ID 数组调整为中文展示串和拆分后的省市区字段
+- 代理商页面的接口语义从单一企业名称调整为“所属生产企业名称 + 代理商名称”双字段模式
 
 ## Impact
 
-### 文件结构
+### 后端
 
-```
-├── 后端代码
-│   ├── controller: BaseCompanyInfoController.java
-│   ├── service: BaseCompanyInfoService.java
-│   ├── mapper: BaseCompanyInfoMapper.java
-│   └── model: BaseCompanyInfo.java
-│
-├── 前端代码
-│   ├── views/base/companyinfo/construction.vue   # 施工企业
-│   ├── views/base/companyinfo/production.vue    # 生产企业
-│   ├── views/base/companyinfo/agent.vue          # 代理商
-│   └── api/base/companyinfo.js
-│
-└── 数据库表SQL脚本
-    ├── sql/tables/master_t_companyinfo.sql       # 已有
-    ├── sql/menu/base_companyinfo_menu.sql
-    └── sql/sequences/seq_t_companyinfo.sql        # 已有
-```
+- `BaseCompanyInfoBo` 需要支持：
+  - `provinceCode/provinceName/cityCode/cityName/districtCode/districtName`
+  - `productionId`
+  - `agentName`
+- `BaseCompanyInfoVo` 需要支持：
+  - `enterpriseName`
+  - `contactPerson`
+  - `provinceCode/provinceName/cityCode/cityName/districtCode/districtName`
+  - `region`
+  - `productionId`
+  - `agentName`
+- `BaseCompanyInfoServiceImpl` 需要在查询结果装配阶段：
+  - 回填企业名称与联系人
+  - 解析 `area`
+  - 关联 `base_province.full_name`
+  - 组装代理商所属生产企业名称
 
-### 现有数据迁移
+### 前端
 
-- 将 base_production、base_construction、base_agent 表的数据迁移到 t_companyinfo
-- 根据原表设置对应的 company_type 值
-
-### 菜单和权限
-
-基于数据库现有权限设计：
-
-| 菜单ID | 菜单名称 | 父级ID | 路径 | 组件 | 权限标识 |
-|--------|---------|--------|------|------|---------|
-| 5000001 | 基础数据 | 0 | base | - | - |
-| 5000002 | 生产企业 | 5000001 | production | base/production/index | base:production:list |
-| 5000003 | 查询 | 5000002 | - | - | base:production:query |
-| 5000004 | 新增 | 5000002 | - | - | base:production:add |
-| 5000005 | 修改 | 5000002 | - | - | base:production:edit |
-| 5000006 | 删除 | 5000002 | - | - | base:production:remove |
-| 5000007 | 导出 | 5000002 | - | - | base:production:export |
-| 5000008 | 施工企业 | 5000001 | construction | base/construction/index | base:construction:list |
-| 5000009 | 查询 | 5000008 | - | - | base:construction:query |
-| 5000010 | 新增 | 5000008 | - | - | base:construction:add |
-| 5000011 | 修改 | 5000008 | - | - | base:construction:edit |
-| 5000012 | 删除 | 5000008 | - | - | base:construction:remove |
-| 5000013 | 导出 | 5000008 | - | - | base:construction:export |
-| 5000014 | 代理商 | 5000001 | agent | base/agent/index | base:agent:list |
-| 5000015 | 查询 | 5000014 | - | - | base:agent:query |
-| 5000016 | 新增 | 5000014 | - | - | base:agent:add |
-| 5000017 | 修改 | 5000014 | - | - | base:agent:edit |
-| 5000018 | 删除 | 5000014 | - | - | base:agent:remove |
-| 5000019 | 导出 | 5000014 | - | - | base:agent:export |
-
-### 新增企业自动创建用户逻辑
-
-#### 角色映射关系
-
-| 企业类型 | company_type | 分配角色 | role_key |
-|---------|-------------|---------|----------|
-| 生产企业 | 2 | 生产单位人员 | scdwry |
-| 施工企业 | 1 | 施工单位人员 | sgdwry |
-| 代理商 | 3 | 供应商人员 | gysjs |
-
-#### 角色ID（待确认）
-
-| 角色名称 | 角色Key | role_id |
-|---------|--------|---------|
-| 生产单位人员 | scdwry | 275393296988112133 |
-| 施工单位人员 | sgdwry | 275855349104248069 |
-| 供应商人员 | gysjs | 305829674242540805 |
-
-#### 用户创建规则
-
-当新增企业时，自动创建配套用户：
-
-| 字段 | 取值 |
-|------|------|
-| user_name | 企业名称（companyName） |
-| nick_name | 企业名称（companyName） |
-| password | 默认密码 Hny@2022 |
-| status | 正常（0） |
-| role_ids | 根据企业类型分配对应角色 |
-| dept_id | 无（NULL）或创建对应部门 |
-| phonenumber | 企业联系电话（contactPhone） |
-| email | 暂无（空） |
-| tenant_id | 000000（默认租户） |
-
-#### 实现方式
-
-1. **Service层扩展**: 在 `BaseCompanyInfoServiceImpl.insertBaseCompanyInfo()` 方法中
-   - 企业插入成功后，调用 SysUserService 创建用户
-   - 根据 companyType 查询对应角色ID
-   - 构建 SysUserBo 并插入用户
-   - 自动建立用户与企业之间的关联
-
-2. **用户-企业关联**: 通过以下方式之一建立关联
-   - 方案A：t_companyinfo 表增加 user_id 字段
-   - 方案B：企业表保留原 user_id 关联字段
-
-#### 异常处理
-
-- 如果角色不存在，跳过用户创建，记录日志警告
-- 如果用户创建失败，企业创建仍可成功（记录日志）
-- 需要事务保证企业创建和用户创建的一致性
-
-## Implementation
-
-### 企业创建流程
-
-```
-用户提交企业信息
-        │
-        ▼
-保存企业信息到 t_companyinfo
-        │
-        ▼
-根据 companyType 获取角色ID
-  - companyType=1 → 施工企业 → sgdwry
-  - companyType=2 → 生产企业 → scdwry
-  - companyType=3 → 代理商 → gysjs
-        │
-        ▼
-构建 SysUserBo
-  - user_name = companyName
-  - nick_name = companyName
-  - password = Hny@2022（BCrypt加密）
-  - role_ids = [对应角色ID]
-  - status = '0'
-        │
-        ▼
-调用 SysUserService.insertUser()
-        │
-        ▼
-返回结果
-```
-
-### 关键接口
-
-```java
-// BaseCompanyInfoServiceImpl 中新增方法
-private Long getRoleIdByCompanyType(Integer companyType) {
-    // 根据 companyType 返回对应的角色ID
-    // companyType=1: sgdwry (施工单位人员) → 275855349104248069
-    // companyType=2: scdwry (生产单位人员) → 275393296988112133
-    // companyType=3: gysjs (供应商人员) → 305829674242540805
-}
-
-private void createUserForCompany(BaseCompanyInfo company) {
-    // 1. 获取角色ID
-    Long roleId = getRoleIdByCompanyType(company.getCompanyType());
-    if (roleId == null) {
-        log.warn("企业[{}]类型[{}]未找到对应角色，跳过用户创建", company.getCompanyName(), company.getCompanyType());
-        return;
-    }
-
-    // 2. 构建用户信息
-    SysUserBo userBo = new SysUserBo();
-    userBo.setUserName(company.getCompanyName());
-    userBo.setNickName(company.getCompanyName());
-    userBo.setPassword("Hny@2022"); // 默认密码
-    userBo.setPhonenumber(company.getContactPhone());
-    userBo.setStatus("0");
-    userBo.setRoleIds(new Long[]{roleId});
-    userBo.setTenantId("000000");
-
-    // 3. 调用系统服务创建用户
-    sysUserService.insertUser(userBo);
-}
-```
-
-### 依赖服务
-
-- `SysUserService`: 系统用户服务，用于创建用户
-- `SysRoleService`: 系统角色服务，用于查询角色ID
-
-## Rollback
-
-删除企业时，同步删除关联的用户：
-
-```sql
--- 删除企业时级联删除用户（如果已建立关联）
-DELETE FROM sys_user WHERE user_id = (SELECT user_id FROM t_companyinfo WHERE id = ?);
-DELETE FROM sys_user_role WHERE user_id = (SELECT user_id FROM t_companyinfo WHERE id = ?);
-DELETE FROM t_companyinfo WHERE id = ?;
-```
+- 施工企业页面、生产企业页面直接消费 `enterpriseName`、`contactPerson`、`region`
+- 代理商页面直接消费：
+  - `enterpriseName`：所属生产企业名称
+  - `agentName`：代理商名称
+  - `productionId`：所属生产企业 ID
+- 地区选择组件依赖接口返回完整的省市区编码与名称用于回显
 
 ## Acceptance Criteria
 
-- [ ] 施工企业新增成功时，系统自动创建用户并分配"施工单位人员"角色
-- [ ] 生产企业新增成功时，系统自动创建用户并分配"生产单位人员"角色
-- [ ] 代理商新增成功时，系统自动创建用户并分配"供应商人员"角色
-- [ ] 新创建的用户可使用默认密码 Hny@2022 登录系统
-- [ ] 用户可查看自己的角色权限
-- [ ] 删除企业时，用户同步删除（或可选保留）
+- [ ] 施工企业列表和详情接口返回 `enterpriseName`、`contactPerson`
+- [ ] 生产企业列表和详情接口返回 `enterpriseName`、`contactPerson`
+- [ ] 地区相关接口返回 `region`，格式为 `省/市/区`
+- [ ] 地区相关接口返回 `provinceCode/provinceName/cityCode/cityName/districtCode/districtName`
+- [ ] 代理商列表接口返回 `enterpriseName`（所属生产企业名称）和 `agentName`（代理商名称）
+- [ ] 代理商详情接口返回 `productionId`，可用于编辑页回显所属生产企业
+- [ ] `area` 中保存地区 ID 时，接口仍能正确关联 `base_province.full_name`
 
 ## Notes
 
-1. **角色ID固定**: 三个角色ID是固定的，需要确认数据库中是否存在这些角色
-2. **密码策略**: 默认密码为 Hny@2022，首次登录后应提示修改密码
-3. **事务保证**: 企业创建和用户创建应在同一事务中，保证数据一致性
-4. **重复检查**: 需检查用户名是否已存在，避免重复创建
-5. **日志记录**: 用户创建失败时记录日志，不影响企业创建主流程
+- 本次变更重点是统一“接口返回模型”和“页面字段语义”，不是调整底层表结构
+- `area` 当前仍可保留为地区 ID 数组字符串形式，后端负责转为前端可用字段
+- 代理商场景下，`enterpriseName` 不再表示代理商自身名称，而是表示所属生产企业名称

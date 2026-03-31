@@ -1,154 +1,89 @@
 # 企业信息管理功能规格
 
-- **模块名称**: base_companyinfo
-- **模块说明**: 企业信息管理（使用 t_companyinfo 表），通过 company_type 区分企业类型
-- **功能范围**: 施工企业管理、生产企业管理、代理商管理、省市区管理
+- **模块名称**: `base_companyinfo`
+- **模块说明**: 基于 `t_companyinfo` 统一管理施工企业、生产企业、代理商三类企业信息，并向前端返回可直接消费的企业名称、联系人、地区名称及代理关系字段
 
 ## ADDED Requirements
 
-### Requirement: 施工企业列表查询
-系统 SHALL 支持查询施工企业列表。
+### Requirement: 施工企业与生产企业查询结果必须返回页面所需字段
+系统 SHALL 在施工企业和生产企业的列表、详情查询中返回页面直接使用的字段。
 
-#### Scenario: 查询施工企业列表
-- **GIVEN** 用户在施工企业管理页面
-- **WHEN** 用户未进行任何操作或点击搜索按钮
-- **THEN** 系统显示所有 company_type=1 的施工企业列表
-- **AND** 包含企业名称、联系人、联系电话、省市区、详细地址、创建时间列
+#### Scenario: 返回企业名称与联系人
+- **GIVEN** 用户查询施工企业或生产企业列表、详情
+- **WHEN** 后端从 `t_companyinfo` 查询到记录
+- **THEN** 接口返回中必须包含 `enterpriseName`
+- **AND** `enterpriseName` 的值来源于 `t_companyinfo.company_name`
+- **AND** 接口返回中必须包含 `contactPerson`
+- **AND** `contactPerson` 的值来源于 `t_companyinfo.contact_user`
 
-#### Scenario: 按企业名称模糊查询
-- **GIVEN** 施工企业列表已加载
-- **WHEN** 用户在查询框输入企业名称关键字并点击搜索
-- **THEN** 系统根据企业名称进行模糊查询并返回匹配的施工企业列表
+### Requirement: 地区字段必须转换为中文名称
+系统 SHALL 将企业信息中的地区 ID 转换为可展示的中文名称。
 
-### Requirement: 新增施工企业
-系统 SHALL 支持新增施工企业。
+#### Scenario: area 存储地区 ID 数组
+- **GIVEN** 企业记录中的 `area` 为 `["37","3706","370681"]` 这类字符串
+- **WHEN** 用户查询列表或详情
+- **THEN** 后端必须按 ID 关联 `base_province` 表
+- **AND** 通过 `base_province.full_name` 获取省、市、区名称
+- **AND** 接口返回 `provinceCode`、`cityCode`、`districtCode`
+- **AND** 接口返回 `provinceName`、`cityName`、`districtName`
+- **AND** 接口返回 `region`
+- **AND** `region` 格式为 `省/市/区`
 
-#### Scenario: 新增施工企业
-- **GIVEN** 用户在施工企业管理页面
-- **WHEN** 用户点击"新增"按钮
-- **THEN** 弹出新增对话框
-- **WHEN** 用户填写企业名称、联系人、联系电话、省市区、详细地址并点击确定
-- **THEN** 系统保存施工企业信息到 t_companyinfo 表（company_type=1）
-- **AND** 列表刷新显示新数据
+#### Scenario: 地区名称回显
+- **GIVEN** 用户打开施工企业、生产企业或代理商编辑页
+- **WHEN** 后端返回企业详情
+- **THEN** 接口必须返回完整的 `provinceCode/provinceName/cityCode/cityName/districtCode/districtName`
+- **AND** 前端能够基于这些字段完成地区组件回显
 
-### Requirement: 编辑施工企业
-系统 SHALL 支持编辑施工企业信息。
+### Requirement: 代理商查询结果必须同时返回所属生产企业和代理商名称
+系统 SHALL 在代理商场景下区分“所属生产企业名称”和“代理商名称”。
 
-#### Scenario: 编辑施工企业
-- **GIVEN** 施工企业列表已显示
-- **WHEN** 用户点击某行的编辑按钮
-- **THEN** 弹出编辑对话框，显示当前施工企业信息
-- **WHEN** 用户修改信息并点击确定按钮
-- **THEN** 系统更新施工企业信息
-- **AND** 列表刷新显示更新后的数据
+#### Scenario: 代理商列表返回字段
+- **GIVEN** 用户查询代理商列表
+- **WHEN** 后端从 `t_companyinfo` 查询 `company_type = 3` 的记录
+- **THEN** 接口返回中必须包含 `agentName`
+- **AND** `agentName` 的值来源于代理商记录的 `company_name`
+- **AND** 接口返回中必须包含 `enterpriseName`
+- **AND** `enterpriseName` 的值来源于代理商记录 `parent_id` 对应的生产企业 `company_name`
 
-### Requirement: 删除施工企业
-系统 SHALL 支持删除施工企业。
+#### Scenario: 代理商详情返回字段
+- **GIVEN** 用户查看或编辑代理商详情
+- **WHEN** 后端返回代理商详情数据
+- **THEN** 接口必须返回 `productionId`
+- **AND** `productionId` 的值来源于代理商记录的 `parent_id`
+- **AND** 接口必须返回 `enterpriseName` 作为所属生产企业名称
+- **AND** 接口必须返回 `agentName` 作为代理商名称
 
-#### Scenario: 删除施工企业
-- **GIVEN** 施工企业列表已显示
-- **WHEN** 用户点击某行的删除按钮
-- **THEN** 弹出确认对话框
-- **WHEN** 用户确认删除
-- **THEN** 系统删除该施工企业（设置 del_flag = 2）
-- **AND** 列表刷新并显示删除成功提示
+### Requirement: 代理商查询条件必须支持代理商名称
+系统 SHALL 支持通过代理商名称查询代理商列表。
 
-### Requirement: 生产企业列表查询
-系统 SHALL 支持查询生产企业列表。
+#### Scenario: 按代理商名称查询
+- **GIVEN** 用户在代理商页面输入代理商名称关键字
+- **WHEN** 用户发起查询
+- **THEN** 后端必须按代理商记录的 `company_name` 执行模糊匹配
+- **AND** 查询结果继续返回所属生产企业名称与代理商名称
 
-#### Scenario: 查询生产企业列表
-- **GIVEN** 用户在生产企业管理页面
-- **WHEN** 用户未进行任何操作或点击搜索按钮
-- **THEN** 系统显示所有 company_type=2 的生产企业列表
-- **AND** 包含企业名称、联系人、联系电话、省市区、详细地址、创建时间列
+## Modified Requirements
 
-### Requirement: 新增生产企业
-系统 SHALL 支持新增生产企业。
+### Requirement: 企业信息视图对象字段语义
+系统 SHALL 统一企业信息接口的视图字段语义。
 
-#### Scenario: 新增生产企业
-- **GIVEN** 用户在生产企业管理页面
-- **WHEN** 用户点击"新增"按钮
-- **THEN** 弹出新增对话框
-- **WHEN** 用户填写企业名称、联系人、联系电话、省市区、详细地址并点击确定
-- **THEN** 系统保存生产企业信息到 t_companyinfo 表（company_type=2）
-- **AND** 列表刷新显示新数据
+#### Scenario: 普通企业页面字段语义
+- **GIVEN** 当前页面为施工企业或生产企业页面
+- **WHEN** 接口返回 `enterpriseName`
+- **THEN** `enterpriseName` 表示企业自身名称
 
-### Requirement: 代理商列表查询
-系统 SHALL 支持查询代理商列表。
+#### Scenario: 代理商页面字段语义
+- **GIVEN** 当前页面为代理商页面
+- **WHEN** 接口返回 `enterpriseName`
+- **THEN** `enterpriseName` 表示所属生产企业名称
+- **AND** `agentName` 表示代理商自身名称
 
-#### Scenario: 查询代理商列表
-- **GIVEN** 用户在代理商管理页面
-- **WHEN** 用户未进行任何操作或点击搜索按钮
-- **THEN** 系统显示所有 company_type=3 的代理商列表
-- **AND** 包含企业名称、联系人、联系电话、省市区、详细地址、创建时间列
+### Requirement: 企业信息写入时地区字段组装
+系统 SHALL 在新增和编辑企业信息时按省市区编码组装地区存储值。
 
-### Requirement: 新增代理商
-系统 SHALL 支持新增代理商。
-
-#### Scenario: 新增代理商
-- **GIVEN** 用户在代理商管理页面
-- **WHEN** 用户点击"新增"按钮
-- **THEN** 弹出新增对话框
-- **WHEN** 用户填写企业名称、联系人、联系电话、省市区、详细地址并点击确定
-- **THEN** 系统保存代理商信息到 t_companyinfo 表（company_type=3）
-- **AND** 列表刷新显示新数据
-
-### Requirement: 省市区三级联动选择
-系统 SHALL 支持省市区三级联动选择。
-
-#### Scenario: 选择省市区
-- **GIVEN** 用户在新增/编辑对话框的省市区字段
-- **WHEN** 用户点击省市区选择器
-- **THEN** 弹出省市区选择面板，显示所有省份
-- **WHEN** 用户选择某个省份
-- **THEN** 自动加载该省的所有城市
-- **WHEN** 用户选择某个城市
-- **THEN** 自动加载该市的所有区县
-- **WHEN** 用户选择某个区县后点击确定
-- **THEN** 关闭选择面板，字段显示选中的省市区（格式：省/市/区）
-
-### Requirement: 电话号码格式验证
-系统 SHALL 验证电话号码格式。
-
-#### Scenario: 验证电话号码格式
-- **GIVEN** 新增/编辑对话框已打开
-- **WHEN** 用户填写联系电话字段
-- **THEN** 系统实时验证电话号码格式
-- **AND** 手机号格式：/^1[3-9]\d{9}$/
-- **AND** 座机号格式：/^0\d{2,3}-?\d{7,8}$/
-- **WHEN** 用户输入不合法格式
-- **THEN** 系统提示："联系电话格式不正确"
-
-### Requirement: 数据导出
-系统 SHALL 支持导出企业信息到 Excel。
-
-#### Scenario: 导出施工企业
-- **GIVEN** 施工企业列表已显示
-- **WHEN** 用户点击"导出"按钮
-- **THEN** 系统导出当前查询结果到 Excel 文件
-- **AND** 文件包含所有列表显示的字段
-
-#### Scenario: 导出生产企业
-- **GIVEN** 生产企业列表已显示
-- **WHEN** 用户点击"导出"按钮
-- **THEN** 系统导出当前查询结果到 Excel 文件
-
-#### Scenario: 导出代理商
-- **GIVEN** 代理商列表已显示
-- **WHEN** 用户点击"导出"按钮
-- **THEN** 系统导出当前查询结果到 Excel 文件
-
-### Requirement: 省市区数据管理
-系统 SHALL 支持省市区数据的查询和选择。
-
-#### Scenario: 查询省市区列表
-- **GIVEN** 用户在省市区管理页面（如有）
-- **WHEN** 用户查询地区列表
-- **THEN** 系统显示所有省市区数据
-- **AND** 支持按地区名称模糊查询
-- **AND** 支持按地区级别筛选
-
-#### Scenario: 选择省份列表
-- **GIVEN** 用户在省市区选择器
-- **WHEN** 打开选择面板
-- **THEN** 系统加载并显示所有省份（region_level=1）
+#### Scenario: 新增或编辑企业
+- **GIVEN** 用户提交 `provinceCode/cityCode/districtCode`
+- **WHEN** 后端保存企业信息
+- **THEN** 后端应将三段地区编码组装回 `area`
+- **AND** 后续查询仍可根据 `area` 正确反查地区中文名称
