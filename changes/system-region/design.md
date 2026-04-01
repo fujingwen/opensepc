@@ -1,228 +1,123 @@
 ## Context
 
-本模块实现系统管理下的行政区划管理功能，包括行政区划数据的增删改查以及供各业务模块复用的省市区选择组件。
-
-本模块使用 `master.base_province` 表存储行政区划数据。
+本模块围绕 `master.base_province` 提供行政区划管理、地区选择组件和地区名称解析能力。当前代码已经可用，但需要按真实数据库表结构和现网数据情况做一次口径收敛。
 
 技术栈：
 
-- 后端：Java 17, Spring Boot 3.2.6, MyBatis-Plus 3.5.7, Sa-Token 1.38.0
-- 前端：Vue 3.4.31, Vite 5.3.2, Element Plus 2.7.6, Pinia
+- 后端：Java 17 / Spring Boot 3.2 / MyBatis-Plus
+- 前端：Vue 3 / Element Plus
+- 数据库：PostgreSQL
 
 ## Goals / Non-Goals
 
-**Goals:**
+**Goals**
 
-- 实现行政区划数据的后端 API（查询、增删改）
-- 实现行政区划管理前端页面（系统管理 -> 行政区划）
-- 创建 RegionSelect 公共组件，供各业务模块复用
-- 实现后端地区名称自动填充功能
+- 统一 `base_province` 的删除语义、字段类型和唯一性约束
+- 保持行政区划页面当前懒加载模式不变
+- 补齐 `RegionDialog` 的编辑回显
+- 让地区名称自动填充能力真正接入业务服务
 
-**Non-Goals:**
+**Non-Goals**
 
-- 省市区数据的实时更新机制（仅提供导入功能）
+- 不在本轮调整搜索语义
+  - 默认只查根节点
+  - `en_code` 模糊查询
+- 不在本轮新增 `/system/region/treeselect`
+- 不在本轮处理 `parent_id is null` 的根节点兼容问题
 
 ## Decisions
 
-### 数据库设计
+### 数据库字段口径
 
-**省市区数据表 (master.base_province)**
+以 `master.base_province` 实表为准：
 
-使用现有 `master.base_province` 表，字段说明：
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | `varchar(50)` | 主键 |
+| `parent_id` | `varchar(50)` | 上级区划 ID |
+| `en_code` | `varchar(50)` | 行政区划编码 |
+| `full_name` | `varchar(50)` | 行政区划名称 |
+| `quick_query` | `varchar(50)` | 快速查询码 |
+| `type` | `varchar(50)` | 区划类型，按字符串建模 |
+| `sort_code` | `bigint` | 排序 |
+| `enabled_mark` | `integer` | 启用状态 |
+| `delete_mark` | `integer` | 历史字段，不再作为删除标记使用 |
+| `del_flag` | `smallint` | 统一删除标记，`0=正常`、`2=删除` |
 
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | VARCHAR(64) | 主键 |
-| parent_id | VARCHAR(64) | 上级区划ID |
-| en_code | VARCHAR(50) | 行政区划编码 |
-| full_name | VARCHAR(100) | 行政区划名称 |
-| quick_query | VARCHAR(100) | 快速查询码 |
-| type | INT | 类型（1-省/直辖市 2-市 3-区县 4-街道） |
-| description | TEXT | 描述 |
-| sort_code | INT | 排序码 |
-| enabled_mark | INT | 状态（1-正常 0-停用），用字典标识 |
-| create_time | TIMESTAMP | 创建时间 |
-| create_by | VARCHAR(64) | 创建人ID |
-| update_time | TIMESTAMP | 最后修改时间 |
-| update_by | VARCHAR(64) | 最后修改人ID |
-| delete_mark | INT | 删除标记（0-正常 1-已删除） |
-| delete_time | TIMESTAMP | 删除时间 |
-| delete_user_id | VARCHAR(64) | 删除人ID |
-| tenant_id | VARCHAR(50) | 租户ID |
-| create_dept | BIGINT | 创建部门 |
-| del_flag | SMALLINT | 删除标记 |
+### 删除语义
 
-### 菜单和权限设计
+- 应用层统一使用 `del_flag`
+- MyBatis-Plus 逻辑删除配置：`value = 0`，`delval = 2`
+- 删除重复脏数据时，也遵循逻辑删除，不做物理删除
 
-**菜单结构**
+### 接口与权限
 
-```
-系统管理 (system)
-└── 行政区划
-    ├── system:region:list
-    ├── system/region/index
-    ├── 新增: system:region:add
-    ├── 修改: system:region:edit
-    └── 删除: system:region:remove
-```
+- `GET /system/region/list`
+  - 用途：页面首屏、懒加载子节点、表单树选择
+  - 权限：`system:region:list`
+- `GET /system/region/{id}`
+  - 用途：详情查询
+  - 权限：`system:region:query`
+- `POST /system/region`
+  - 权限：`system:region:add`
+- `PUT /system/region`
+  - 权限：`system:region:edit`
+- `DELETE /system/region/{ids}`
+  - 权限：`system:region:remove`
 
-### 后端API设计
+### 为什么当前阶段不新增 `/treeselect`
 
-**行政区划API**
+当前页面和两个组件都基于如下模式工作：
 
-- GET /system/region/list - 分页查询，权限：system:region:query
-- GET /system/region/{id} - 获取详情，权限：system:region:query
-- POST /system/region - 新增，权限：system:region:add
-- PUT /system/region - 修改，权限：system:region:edit
-- DELETE /system/region/{id} - 删除，权限：system:region:remove
-- GET /system/region/treeselect - 获取树形数据（用于下拉选择），权限：system:region:query
+1. 首屏调用 `/list` 获取根节点
+2. 展开时带 `parentId` 再调用 `/list`
+3. 表单树选择也按需加载
 
-### 前端设计
+这意味着：
 
-**页面结构**
+- 当前没有“必须返回整棵树”的强需求
+- 新增 `/treeselect` 只会带来一套额外的接口维护成本
+- 真正需要时，再新增一个“全量树”接口会更清晰
 
-- 使用Element Plus的Table组件展示数据列表
-- 使用Dialog组件实现新增/修改弹窗
-- 使用Form组件实现表单验证
-- 使用ElMessage进行操作反馈
-- 使用ElSwitch组件实现状态开关
+进一步方案：
 
-**行政区划管理页面（系统管理 -> 行政区划）**
+- 保持现状：`/list` 继续承担懒加载数据接口
+- 若后续出现以下任一场景，再补 `/treeselect`
+  - 通用 `el-tree-select` 需要一次性回显整棵树
+  - 树节点搜索需要服务端返回结构化树
+  - 其他业务组件需要“非懒加载”的树快照
 
-列表展示字段：
+## Component Notes
 
-- 行政区划编码（en_code）
-- 行政区划名称（full_name）
-- 上级区划（parent_id）
-- 排序（sort_code）
-- 状态（enabled_mark，用字典标识）
-- 创建时间（create_time）
-- 操作（编辑、删除）
+### RegionDialog
 
-新增页面字段：
+`RegionDialog` 采用树形懒加载，规格要求包括：
 
-- 上级区划（树形选择，支持搜索）
-- 行政区划编码（input，必填）
-- 行政区划名称（input，必填）
-- 显示排序（input，必填，数字）
-- 状态（switch开关，默认开启）
+- 左侧树展示
+- 右侧已选路径
+- 清空
+- 取消 / 确定
+- 编辑回显
 
-编辑页面字段：
+本次实现补齐“编辑回显自动定位”，因此该组件可以视为符合 `common_region_dialog` 规格。
 
-- 上级区划（树形选择，支持搜索，可编辑）
-- 行政区划编码（可编辑）
-- 行政区划名称（可编辑）
-- 显示排序（可编辑，数字）
-- 状态（switch开关）
-- 创建时间（不可编辑，仅展示）
+### RegionSelect
 
-表单验证规则：
+`RegionSelect` 当前仍是轻量级 `Popover` 三列直选方案，和 `common_region_picker` 里“Tab + 底部路径 + 显式确认”的交互仍有差异。本轮不改，继续保留标记。
 
-- 行政区划编码：必填，最大长度50，唯一性验证
-- 行政区划名称：必填，最大长度100
-- 显示排序：必填，数字
+### 地区名称填充
 
-**路由设计**
-
-```
-/system
-  /region - 行政区划管理
-```
-
-### RegionSelect 公共组件设计
-
-创建RegionSelect组件，实现省市区三级联动选择弹窗：
-
-- 组件路径：`src/components/RegionSelect/index.vue`
-- 弹窗样式：
-  - 标题："选择省/市/县"
-  - 使用ElDialog组件弹出
-  - 左侧：省/市/县三个Tab切换，点击Tab时加载对应级别的数据
-  - 右侧：当前级别可选列表（点击选中）
-  - 底部：显示当前已选择路径（如：山东省/青岛市/黄岛区），右侧为取消、确定按钮
-- 功能特性：
-  - 点击input弹出选择弹窗
-  - 默认显示"省"Tab，点击省份后加载该省的城市列表
-  - 切换到"市"Tab，显示该省份下的城市列表
-  - 切换到"县"Tab，显示该城市下的区县列表
-  - 点击选项后自动选中，并更新已选择区域显示
-  - 支持清空操作
-  - 支持编辑时回显已选择的地区
-- 组件API：
-  - Props：
-    - `modelValue`: Object类型，包含provinceCode、provinceName、cityCode、cityName、districtCode、districtName
-    - `level`: Number类型，默认3，表示选择级别（2表示省市，3表示省市区）
-    - `placeholder`: String类型，默认"请选择省/市/县"
-  - Events：
-    - `update:modelValue`: 更新选择值
-    - `change`: 选择变化时触发
-- 数据接口：
-  - 使用`@/api/system/region`中的API接口
-  - `getRegionChildren(parentId)`: 根据父级ID获取子级列表（懒加载）
-  - `getRegionTree()`: 获取树形结构数据（用于回显）
-
-### 后端地区名称自动填充
-
-在Service层实现地区名称自动填充：
-
-- 查询列表、详情时自动填充省市区名称
-- 填充逻辑：
-  - 根据provinceCode查询base_province表获取provinceName
-  - 根据cityCode查询base_province表获取cityName
-  - 根据districtCode查询base_province表获取districtName
-- 实现方式：
-  - 提供RegionNameFillUtil工具类
-  - 各业务模块在需要时调用工具类填充地区名称
-
-### 省市区数据管理方案
-
-**数据来源**
-
-- 使用master.base_province表存储数据
-- 已通过数据迁移从test模式导入45331条行政区划数据
-
-**数据加载策略**
-
-- 前端采用懒加载方式
-- 选择省份后加载该省的城市列表
-- 选择城市后加载该市的区县列表
-
-**缓存策略**
-
-- 省份列表在应用启动时加载并缓存
-- 城市/区县数据使用Pinia缓存，避免重复请求
-
-## Risks / Trade-offs
-
-**风险1：省市区数据更新**
-
-- 风险：行政区划可能调整，需要定期更新数据
-- 缓解：提供省市区数据导入功能，支持从Excel或JSON文件批量更新
-
-**权衡：数据实时性**
-
-- 决策：采用懒加载+本地缓存策略
-- 理由：减少初始加载时间，提升用户体验，数据更新频率较低
+地区名称填充能力不再局限于 `hny-system` 模块内的孤立工具类，而是下沉为共享工具，并在企业信息查询链路中实际使用。
 
 ## Migration Plan
 
-1. **数据库确认**
-   - 确认master.base_province表已存在（已从test模式复制）
-   - 确认表字段已添加系统字段（tenant_id, create_dept, create_by, create_time, update_by, update_time, del_flag）
+1. 规范 `del_flag`
+2. 逻辑删除重复 `en_code='110228001'` 的三条脏数据，仅保留 `id='110228001'`
+3. 为 `base_province.id` 增加主键
+4. 为活动数据增加 `en_code` 唯一索引
+5. 为树查询增加 `parent_id` 辅助索引
 
-2. **后端部署**
-   - 部署新的Controller、Service、Mapper
-   - 提供RegionNameFillUtil工具类
+## Risks / Trade-offs
 
-3. **前端部署**
-   - 部署行政区划管理页面（系统管理 -> 行政区划）
-   - 部署RegionSelect公共组件
-   - 配置路由和菜单
-
-4. **回滚策略**
-   - 前端可通过路由配置快速禁用新页面
-
-## Open Questions
-
-1. 省市区数据是否需要支持多语言？（当前仅支持中文）
-2. 是否需要支持乡镇/街道级别？（当前仅支持省市区三级）
+- 本轮不调整搜索语义，因此“默认根节点过滤”和“编码模糊查询”问题会继续保留
+- 不新增 `/treeselect` 可以减少接口数量，但未来如有全量树需求，仍需要补接口

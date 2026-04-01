@@ -21,85 +21,49 @@
 
 ### 当前结论
 
-`base-companyinfo` 主体能力已实现，但仍有若干项与提案/设计/spec 不完全一致，尤其是“按用户取企业接口”“默认密码来源”“电话校验口径”“历史数据可解析性”几项。
+`base-companyinfo` 已按最新修正意见重新收口。
+
+- 已处理：1、2、3、4、6
+- 保留标记：5
 
 ## 高优先级问题
 
-### 1. 前端声明了 `getByUserId` 能力，但后端未实现对应接口
+### 1. `getByUserId` 能力不再需要
 
-- 设计中明确列出：
-  - `GET /api/base/companyinfo/construction/getByUserId`
-  - `GET /api/base/companyinfo/production/getByUserId`
-- 前端 API 中也保留了 `/base/companyinfo/${path}/getByUserId/${userId}` 调用。
-- 当前后端控制器未实现任何 `getByUserId` 路由。
+状态：已处理
 
-影响：
-
-- 若页面或组件使用该能力，会直接 404。
-- 提案中的“按用户获取企业信息”能力未闭环。
-
-相关文件：
-
-- `construction-material-web/src/api/base/companyinfo.js`
-- `construction-material-web/src/components/EnterpriseSelect/index.vue`
-- `construction-material-backend/hny-modules/hny-base/src/main/java/com/hny/base/controller/BaseCompanyInfoController.java`
+- 提案中移除了该能力
+- 前端 API 和 `EnterpriseSelect` 已移除对应依赖
 
 ### 2. 默认密码被硬编码，不符合提案中“来自配置项”的约定
 
-- proposal/design 明确写的是默认密码 `Hny@2022`，并强调来自配置项。
-- 当前监听器中使用的是硬编码常量 `DEFAULT_PASSWORD = "Hny@2022"`。
+状态：已处理
 
-影响：
+- 本轮明确按写死逻辑处理
+- 提案与设计已同步到这一口径
 
-- 无法通过配置中心或环境配置调整默认密码。
-- 与提案描述的可配置行为不一致。
+### 3. `del_flag is null` 的历史数据需修正为 `0`
 
-相关文件：
+状态：已处理
 
-- `construction-material-backend/hny-modules/hny-system/src/main/java/com/hny/system/listener/BaseCompanyInfoUserCreateListener.java`
-
-### 3. 逻辑删除过滤条件与真实数据不兼容，会漏掉 `del_flag is null` 的有效数据
-
-- 当前查询条件固定为 `del_flag = 0`。
-- 实际数据库中：
-  - 总记录数：`5001`
-  - `del_flag is null`：`6`
-  - `del_flag = 0`：`4929`
-  - `del_flag = 2`：存在
-- 其他模块 SQL 已普遍采用 `coalesce(del_flag, 0) = 0` 口径。
-
-影响：
-
-- 当前企业列表/详情会漏掉库中 `del_flag is null` 的有效历史记录。
-- 与实际数据口径不一致。
-
-相关文件：
-
-- `construction-material-backend/hny-modules/hny-base/src/main/java/com/hny/base/service/impl/BaseCompanyInfoServiceImpl.java`
+- 已补数据库修复脚本
+- 代码查询也兼容 `COALESCE(del_flag, 0) = 0`
 
 ## 中优先级问题
 
 ### 4. 电话校验口径不符合设计：前端只允许手机号，未支持座机；后端也未做二次校验
 
+状态：已处理
+
 - design 写明电话校验应支持：
   - 手机号：`^1[3-9]\\d{9}$`
   - 座机：`^0\\d{2,3}-?\\d{7,8}$`
-- 当前前端三个页面均只校验手机号。
-- 后端 `BaseCompanyInfoBo` 仅做非空和长度校验，没有正则校验。
-
-影响：
-
-- 合法座机号码无法录入。
-- 与“前后端双重校验”的设计不一致。
-
-相关文件：
-
-- `construction-material-web/src/views/base/construction/index.vue`
-- `construction-material-web/src/views/base/production/index.vue`
-- `construction-material-web/src/views/base/agent/index.vue`
-- `construction-material-backend/hny-modules/hny-base/src/main/java/com/hny/base/domain/bo/BaseCompanyInfoBo.java`
+- 前端三个页面已改为同时支持手机号和座机
+- 后端 `BaseCompanyInfoBo` 已补正则校验
 
 ### 5. 地区解析能力对历史脏数据兜底不足，无法满足“正确关联中文名称”的验收标准
+
+状态：已标记，暂不处理
 
 - 实际数据库中存在大量 `area = 'null'` 的记录。
 - 另外解析出的地区码中有 4 个值无法在 `master.base_province` 找到：
@@ -120,18 +84,10 @@
 
 ### 6. 设计文档中的数据前提与现状不一致
 
-- design 中仍描述省市区来源表为 `base_region`，而当前实现和 proposal/spec 实际使用的是 `base_province`。
-- design 中提到迁移自 `base_production` / `base_construction` / `base_agent`，但当前实际承载表已是 `master.t_companyinfo`。
+状态：已处理
 
-影响：
-
-- 提案内部文档存在口径分叉，后续开发和验收容易误判。
-
-相关文件：
-
-- `openspec/changes/base-companyinfo/design.md`
-- `openspec/changes/base-companyinfo/proposal.md`
-- `openspec/changes/base-companyinfo/specs/base_companyinfo/spec.md`
+- 提案、设计、规格已统一为 `base_province` 口径
+- 代码和 SQL 残留也已删除，仅保留 `base_province`
 
 ## 验证记录
 
@@ -139,9 +95,12 @@
 - 已核对表：
   - `master.t_companyinfo`
   - `master.base_province`
-  - `master.base_region`
 - 实表摘要：
   - `t_companyinfo` 总记录数：`5001`
+  - `del_flag = 0`：`4935`
+  - `del_flag = 1`：`61`
+  - `del_flag = 2`：`5`
+  - `del_flag is null`：`0`
   - `company_type = 1`：`1097`
   - `company_type = 2`：`3633`
   - `company_type = 3`：`271`
@@ -156,5 +115,7 @@
 
 ## 额外说明
 
-- 本次前端生产构建未能作为 `base-companyinfo` 的最终验收依据，因为仓库当前存在一个与本提案无关的阻塞错误：
-  - `src/views/materials/project/index.vue` 缺少结束标签，导致 `npm run build:prod` 失败。
+- 本轮已重新验证：
+  - `openspec validate base-companyinfo` 通过
+  - `mvn -pl hny-modules/hny-base,hny-modules/hny-materials -am -DskipTests compile` 通过
+  - `npm run build:prod` 通过

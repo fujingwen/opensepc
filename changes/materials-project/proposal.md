@@ -1,7 +1,7 @@
 ## Why
 
 工程项目管理页面需要完成以下工作：
-- 主表从 `mat_project` 回调到 `t_project`
+- 主表使用 `t_project`
 - 历史数据从 `test.t_project` 迁移到 `master.t_project`
 - 字典数据迁移（旧字典ID映射为新短编码）
 - 一体化工程编码下拉选择（数据源 `jck_t_gc_sgxkz`）
@@ -16,7 +16,7 @@
 
 ## What Changes
 
-- 工程项目主链路回调到 `master.t_project`
+- 工程项目主链路基于 `master.t_project`
 - 一体化工程编码下拉选择器（打开 dialog 时立即加载列表）
 - 新增表单：施工许可证和发证日期非必填，有无填报和对接状态字段不显示
 - 操作按钮：移除批量删除，新增导出和导出已开工未填报项目表

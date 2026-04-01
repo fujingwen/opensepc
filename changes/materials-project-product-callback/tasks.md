@@ -12,7 +12,7 @@
 
 - [ ] 2.1 创建 `master.t_project`（SQL 已就绪）
 - [ ] 2.2 执行 `test.t_project -> master.t_project` 数据迁移（SQL 已就绪）
-- [x] 2.3 调整工程项目后端从 `mat_project` 切换到 `t_project`
+- [x] 2.3 调整工程项目后端统一到 `t_project`
   - 实体映射到 `t_project` ✓
   - Mapper 查询改到 `t_project` ✓
   - 兼容主键与逻辑删除字段 ✓
@@ -24,7 +24,7 @@
 - [ ] 3.1 创建 `master.t_project_product`（SQL 已就绪）
 - [ ] 3.2 执行 `test.t_project_product -> master.t_project_product` 数据迁移（SQL 已就绪）
 - [ ] 3.3 明确 `t_project_product` 字段与现有页面查询条件映射
-- [ ] 3.4 调整建材产品后端从 `mat_product` 切换到 `t_project_product`
+- [ ] 3.4 调整建材产品后端统一到 `t_project_product`
 - [ ] 3.5 补充 `t_companyinfo` 企业名称映射（`manufacturer_id`、`supplier_id`）
 - [ ] 3.6 调整建材产品前端字段映射
 - [ ] 3.7 验证与 `t_project` 的关联查询

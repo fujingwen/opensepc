@@ -4,7 +4,7 @@
 
 ### Requirement: 工程项目主表统一到 `t_project`
 
-系统 SHALL 使用 `master.t_project` 作为工程项目主承载表，而不是继续使用 `master.mat_project`。
+系统 SHALL 使用 `master.t_project` 作为工程项目主承载表。
 
 #### Scenario: 查询工程项目列表
 

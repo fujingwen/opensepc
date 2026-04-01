@@ -2,45 +2,56 @@
 
 ## ADDED Requirements
 
-### Requirement: 行政区划数据查询
-系统 SHALL 支持分页查询行政区划数据，支持按名称模糊查询、按编码模糊查询、按状态筛选。
+### Requirement: 行政区划删除使用逻辑删除
 
-#### Scenario: 按名称模糊查询
-- **WHEN** 用户输入"行政区划名称"并点击查询
-- **THEN** 系统返回包含该名称的所有行政区划数据
-
-#### Scenario: 按编码模糊查询
-- **WHEN** 用户输入"行政区划编码"并点击查询
-- **THEN** 系统返回编码包含该值的所有行政区划数据
-
-#### Scenario: 按状态筛选
-- **WHEN** 用户选择状态（全部/未启用/已启用）并点击查询
-- **THEN** 系统返回对应状态的行政区划数据
-
-### Requirement: 行政区划数据新增
-系统 SHALL 支持新增行政区划数据。
-
-#### Scenario: 新增行政区划
-- **WHEN** 用户填写行政区划编码、行政区划名称，选择上级区划，设置排序，开启状态，点击保存
-- **THEN** 系统成功保存数据并返回列表
-
-### Requirement: 行政区划数据修改
-系统 SHALL 支持修改行政区划数据。
-
-#### Scenario: 修改行政区划
-- **WHEN** 用户编辑某条记录，修改行政区划名称/排序/状态，点击保存
-- **THEN** 系统成功更新数据
-
-### Requirement: 行政区划数据删除
-系统 SHALL 支持删除行政区划数据。
+系统 SHALL 在删除行政区划时使用 `del_flag` 作为统一删除标记。
 
 #### Scenario: 删除行政区划
-- **WHEN** 用户点击某条记录的删除按钮
-- **THEN** 系统标记该记录为已删除
 
-### Requirement: 获取树形数据
-系统 SHALL 提供获取树形结构数据的接口，用于下拉选择。
+- **WHEN** 用户删除某条行政区划记录
+- **THEN** 系统将该记录的 `del_flag` 更新为 `2`
+- **AND** 系统不再依赖 `delete_mark` 作为删除语义
 
-#### Scenario: 获取行政区划树
-- **WHEN** 调用获取树形数据接口
-- **THEN** 系统返回树形结构的行政区划数据
+### Requirement: 行政区划编码必须在活动数据中唯一
+
+系统 SHALL 保证活动数据中的 `en_code` 唯一。
+
+#### Scenario: 新增时编码重复
+
+- **WHEN** 用户新增行政区划，且活动数据中已存在相同 `en_code`
+- **THEN** 系统拒绝保存并提示编码已存在
+
+#### Scenario: 修改时编码重复
+
+- **WHEN** 用户修改行政区划，且除当前记录外的活动数据中已存在相同 `en_code`
+- **THEN** 系统拒绝保存并提示编码已存在
+
+### Requirement: 行政区划字段映射遵循实表设计
+
+系统 SHALL 按 `master.base_province` 的真实表结构建模行政区划数据。
+
+#### Scenario: 映射 type 字段
+
+- **WHEN** 系统读写 `type` 字段
+- **THEN** 按字符串类型处理，而不是整数类型
+
+#### Scenario: 映射删除标记
+
+- **WHEN** 系统读写删除状态
+- **THEN** 使用 `del_flag`
+- **AND** `0` 表示正常
+- **AND** `2` 表示删除
+
+### Requirement: 页面列表接口与详情查询权限分离
+
+系统 SHALL 区分页面访问权限和详情查询权限。
+
+#### Scenario: 页面列表
+
+- **WHEN** 用户访问 `/system/region/list`
+- **THEN** 系统校验权限 `system:region:list`
+
+#### Scenario: 详情查询
+
+- **WHEN** 用户访问 `/system/region/{id}`
+- **THEN** 系统校验权限 `system:region:query`

@@ -59,21 +59,10 @@ CREATE TABLE master.t_companyinfo (
 );
 ```
 
-**省市区数据表 (base_region)**
+**省市区数据表 (base_province)**
 
-```sql
-CREATE TABLE master.base_region (
-    id BIGINT PRIMARY KEY,
-    region_code VARCHAR(20) NOT NULL COMMENT '行政区划代码',
-    region_name VARCHAR(50) NOT NULL COMMENT '名称',
-    parent_code VARCHAR(20) COMMENT '父级代码',
-    region_level INTEGER NOT NULL COMMENT '级别 1-省 2-市 3-区',
-    sort INTEGER DEFAULT 0,
-    status INTEGER DEFAULT 0,
-    create_by VARCHAR(50),
-    create_time TIMESTAMP
-);
-```
+- 使用 `master.base_province` 作为唯一地区数据源
+- 企业信息中的 `area` 字段统一按地区 ID 反查 `base_province.full_name`
 
 ### 菜单和权限设计
 
@@ -123,20 +112,10 @@ CREATE TABLE master.base_region (
 - GET /api/base/companyinfo/list - 分页查询，权限：base:companyinfo:query
   - 参数：companyType（企业类型 1/2/3）, companyName（企业名称模糊查询）
 - POST /api/base/companyinfo - 新增，权限：base:companyinfo:add
-  - 新增企业时自动创建用户，默认密码为 `Hny@2022`（配置项 `sys.user.initPassword`）
+  - 新增企业时自动创建用户，默认密码为 `Hny@2022`（当前写死实现）
 - PUT /api/base/companyinfo - 修改，权限：base:companyinfo:edit
 - DELETE /api/base/companyinfo/{id} - 删除，权限：base:companyinfo:remove
 - GET /api/base/companyinfo/export - 导出Excel，权限：base:companyinfo:export
-
-**施工企业专用API**
-
-- GET /api/base/companyinfo/construction/getByUserId - 根据用户ID获取施工企业信息
-  - 如果查询不到记录，自动创建一条记录并返回
-
-**生产企业专用API**
-
-- GET /api/base/companyinfo/production/getByUserId - 根据用户ID获取生产企业信息
-  - 如果查询不到记录，自动创建一条记录并返回
 
 **代理商专用API**
 
@@ -207,8 +186,7 @@ CREATE TABLE master.base_region (
 ### 省市区数据管理方案
 
 **数据来源**
-- 使用国家统计局最新行政区划数据
-- 初始化时导入省市区数据到base_region表
+- 使用 `master.base_province` 作为唯一行政区划来源
 
 **数据加载策略**
 - 前端采用懒加载方式
@@ -231,9 +209,9 @@ CREATE TABLE master.base_region (
 
 ## Migration Plan
 
-1. **数据迁移**
-   - 将 base_production、base_construction、base_agent 表的数据迁移到 t_companyinfo
-   - 根据原表设置对应的 company_type 值
+1. **数据修正**
+   - 将 `t_companyinfo.del_flag is null` 统一修正为 `0`
+   - 清理旧地区实现残留，仅保留 `base_province`
 
 2. **后端部署**
    - 部署新的Controller、Service、Mapper

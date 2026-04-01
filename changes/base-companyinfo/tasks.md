@@ -11,7 +11,7 @@
 - [x] 4. 创建 `BaseCompanyInfo` 实体、Mapper、Service、Controller
 - [x] 5. 实现施工企业、生产企业、代理商分页查询接口
 - [x] 6. 实现新增、编辑、删除、导出接口
-- [x] 7. 新增企业时自动创建用户并分配角色（默认密码 `Hny@2022`，配置项 `sys.user.initPassword`）
+- [x] 7. 新增企业时自动创建用户并分配角色（默认密码暂按写死 `Hny@2022`）
 - [x] 8. 修正企业信息查询返回字段，确保 `enterpriseName`、`contactPerson` 正确回填
 - [x] 9. 解析 `area` 中的地区 ID，并关联 `base_province.full_name` 组装 `region`
 - [x] 10. 为接口补充 `provinceCode/provinceName/cityCode/cityName/districtCode/districtName`
@@ -31,12 +31,16 @@
 - [x] 21. 修正权限标识，确保与数据库中实际权限标识一致
 - [x] 22. 优化 `EnterpriseSelect` 组件，支持生产企业下拉选择（不分页）
 - [x] 23. 优化 `getProductions` 接口，只返回enterpriseName和id字段
+- [x] 24. 删除 `getByUserId` 前端残留接口与依赖
+- [x] 25. 前后端联系电话校验统一支持手机号和座机号
+- [x] 26. 删除旧地区实现相关前后端代码与 SQL 残留
+- [x] 27. 修复 `t_companyinfo.del_flag is null` 历史数据
 
 ## 验证
 
-- [x] 24. 验证施工企业列表与详情返回企业名称、联系人、地区中文名
-- [x] 25. 验证生产企业列表与详情返回企业名称、联系人、地区中文名
-- [x] 26. 验证代理商列表与详情返回所属生产企业、代理商名称、地区中文名
-- [x] 27. 验证代理商编辑页可回显所属生产企业与省市区
-- [x] 28. 验证用户创建时密码已正确加密（BCrypt.hashpw）
-- [x] 29. 验证create_by和update_by字段使用实际用户ID
+- [x] 28. 验证施工企业列表与详情返回企业名称、联系人、地区中文名
+- [x] 29. 验证生产企业列表与详情返回企业名称、联系人、地区中文名
+- [x] 30. 验证代理商列表与详情返回所属生产企业、代理商名称、地区中文名
+- [x] 31. 验证代理商编辑页可回显所属生产企业与省市区
+- [x] 32. 验证用户创建时密码已正确加密（BCrypt.hashpw）
+- [x] 33. 验证create_by和update_by字段使用实际用户ID

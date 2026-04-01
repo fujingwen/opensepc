@@ -4,7 +4,7 @@
 
 ### Requirement: 建材产品主表统一到 `t_project_product`
 
-系统 SHALL 使用 `master.t_project_product` 作为建材产品主承载表，而不是继续使用 `master.mat_product`。
+系统 SHALL 使用 `master.t_project_product` 作为建材产品主承载表。
 
 #### Scenario: 查询建材产品列表
 

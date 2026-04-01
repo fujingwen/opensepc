@@ -1,6 +1,6 @@
 ## Context
 
-工程项目管理页面需要完成从 `mat_project` 到 `t_project` 的回调，并在此基础上实现一体化工程编码下拉选择、表单字段调整、导出功能增强等需求。
+工程项目管理页面需要基于 `t_project` 实现一体化工程编码下拉选择、表单字段调整、导出功能增强等需求。
 
 当前状态：
 
@@ -22,7 +22,7 @@
 
 **Non-Goals**
 
-- 本次不涉及建材产品页面（`mat_product` / `t_project_product`），该部分在 `materials-project-product-callback` 提案中管理。
+- 本次不涉及建材产品页面（`t_project_product`），该部分在 `materials-project-product-callback` 提案中管理。
 - 本次不涉及质量追溯模块。
 - 本次不处理消息通知、通知公告等其他模块。
 
@@ -33,7 +33,7 @@
 原因：
 
 - `test.t_project` 有完整历史数据（3,746 条），且后续质量追溯依赖该表。
-- `master.mat_project` 数据极少，不能继续作为后续模块依赖。
+- 工程项目主数据统一以 `master.t_project` 为准，避免并行口径。
 
 设计决策：
 

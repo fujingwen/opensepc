@@ -2,7 +2,7 @@
 
 当前材料填报模块存在“业务入口已建、主数据方向不准”的问题：
 
-1. 代码层仍以 `mat_project`、`mat_product` 为核心。
+1. 工程项目与建材产品需要统一到 `t_project`、`t_project_product`。
 2. 数据层真实规模和后续迁移方案已经转向 `t_project`、`t_project_product`。
 3. 质量追溯模块依赖项目与产品主链路，尤其“缺陷建材使用情况”需要稳定的项目产品关系。
 
@@ -13,8 +13,8 @@
 **Goals**
 
 - 在 `master` schema 建立并启用 `t_project` 作为工程项目主表。
-- 将工程项目读写链路从 `mat_project` 回调到 `t_project`。
-- 将建材产品读写链路从 `mat_product` 回调到 `t_project_product`。
+- 将工程项目读写链路统一到 `t_project`。
+- 将建材产品读写链路统一到 `t_project_product`。
 - 在 OpenSpec 层面明确质量追溯四页依赖顺序。
 - 尽量保持已有菜单路径、接口路径、前端页面入口不变。
 
@@ -32,7 +32,7 @@
 原因：
 
 - `test.t_project` 有完整历史数据。
-- `master.mat_project` 数据极少，不能继续作为后续模块依赖。
+- 工程项目主数据统一以 `master.t_project` 为准。
 - 质量追溯中的使用情况页需要项目主表稳定存在。
 
 设计决策：
@@ -46,13 +46,13 @@
 原因：
 
 - `t_project_product` 已经承载大量真实数据。
-- 继续开发 `mat_product` 会与后续质量追溯、项目使用情况统计产生双轨数据问题。
+- 如果不统一到 `t_project_product`，会与后续质量追溯、项目使用情况统计产生双轨数据问题。
 
 设计决策：
 
 - `/materials/product` 继续保留。
 - 底层查询、详情、编辑、导出统一改为面向 `t_project_product`。
-- 需要项目信息时，通过 `project_id -> t_project.id` 关联，而不是 `mat_project`。
+- 需要项目信息时，通过 `project_id -> t_project.id` 关联。
 
 ### 3. 质量追溯作为第二阶段能力
 
@@ -88,7 +88,7 @@
 
 关键改造点：
 
-- `MatProjectMapper.xml` 的 `FROM mat_project` 改为 `FROM t_project`
+- `MatProjectMapper.xml` 使用 `FROM t_project`
 - 统一处理 `tenant_id`、`del_flag`
 - BO/VO 字段名向 `t_project` 实际列名对齐
 
@@ -107,7 +107,7 @@
 关键改造点：
 
 - `MatProductMapper.xml` 的主表改为 `t_project_product`
-- 关联表从 `mat_project` 改为 `t_project`
+- 关联表统一使用 `t_project`
 - 梳理原页面使用的查询条件与 `t_project_product` 字段映射关系
 
 ## Frontend Design

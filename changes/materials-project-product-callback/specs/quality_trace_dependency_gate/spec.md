@@ -22,4 +22,4 @@
 - **Given** 团队开始设计缺陷建材使用情况页
 - **When** 确认数据来源
 - **Then** 页面关系链应建立在 `t_project`、`t_project_product`、`t_quality_trace`
-- **Then** 不得再以 `mat_project` 或 `mat_product` 作为主关系链
+- **Then** 不得再偏离 `t_project` 或 `t_project_product` 这条主关系链

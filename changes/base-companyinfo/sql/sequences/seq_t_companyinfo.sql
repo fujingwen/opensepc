@@ -1,3 +1,0 @@
--- 企业基础信息表 Sequence
-CREATE SEQUENCE IF NOT EXISTS "master"."seq_t_companyinfo"
-  START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;

@@ -2,10 +2,10 @@
 
 当前“工程项目”“建材产品”“质量追溯”三块能力的主数据链路并不一致，已经出现设计方向和实际承载表脱节的问题：
 
-- 现有代码仍然围绕 `master.mat_project`、`master.mat_product` 开发。
-- 实际数据库中，`master.mat_project` 只有极少量数据，`master.mat_product` 也不是当前主承载表。
+- 现有功能应统一围绕 `master.t_project`、`master.t_project_product` 开发。
+- 实际数据库主承载表应统一为 `master.t_project`、`master.t_project_product`。
 - 真实业务数据已经主要沉淀在 `test.t_project`、`test.t_project_product`，其中 `test.t_project_product` 已有大规模数据。
-- 质量追溯四个页面里，“缺陷建材使用情况”必须依赖“工程项目 -> 建材产品 -> 质量追溯”完整链路，如果继续沿用 `mat_project` / `mat_product`，后续必然返工。
+- 质量追溯四个页面里，“缺陷建材使用情况”必须依赖“工程项目 -> 建材产品 -> 质量追溯”完整链路，因此必须统一到 `t_project` / `t_project_product`。
 
 因此需要先做一个统一的回调变更，把工程项目与建材产品的主链路纠正到 `master.t_project`、`master.t_project_product`，再以此作为质量追溯模块落地前提。
 
@@ -22,17 +22,16 @@
 - 第一阶段：工程项目主链路回调。
   - 在 `master` schema 建立 `t_project`。
   - 将 `test.t_project` 迁移到 `master.t_project`。
-  - 将工程项目相关后端与前端从 `mat_project` 回调到 `t_project`。
+  - 将工程项目相关后端与前端统一到 `t_project`。
 - 第一阶段：建材产品主链路回调。
   - 统一以 `master.t_project_product` 作为建材产品主表。
-  - 将建材产品相关后端与前端从 `mat_product` 回调到 `t_project_product`。
+  - 将建材产品相关后端与前端统一到 `t_project_product`。
   - 保留现有 `/materials/project`、`/materials/product` 业务入口，避免页面菜单和调用方大面积调整。
 - 第二阶段：质量追溯依赖约束。
   - 明确质量追溯四页必须建立在 `t_project`、`t_project_product` 主链路稳定之后。
   - 将“抽测缺陷建材产品”“检测缺陷建材产品”“缺陷建材使用情况”“缺陷建材厂家”定义为后续变更，不在本次直接实现。
 - 明确旧方向变更的状态：
-  - `materials-project` 中以 `mat_project` 为主表的方案不再作为继续开发依据。
-  - `materials-product` 中以 `mat_product` 为主表的方案不再作为继续开发依据。
+  - `materials-project`、`materials-product` 中旧表口径不再作为继续开发依据。
 
 ## Capabilities
 
@@ -57,7 +56,7 @@
 - 接口入口：继续使用 `/materials/project`
 - 约束：
   - 查询、详情、新增、编辑、删除全部围绕 `t_project`
-  - 迁移后不再以 `mat_project` 作为主读写表
+  - 工程项目仅以 `t_project` 作为主读写表
 
 #### 2. 建材产品回调
 
@@ -68,7 +67,7 @@
 - 约束：
   - 列表、详情、编辑、导出等能力全部围绕 `t_project_product`
   - 如需项目信息，统一关联 `t_project`
-  - 不再以 `mat_product` 作为主读写表
+  - 建材产品仅以 `t_project_product` 作为主读写表
 
 #### 3. 质量追溯前置条件
 
