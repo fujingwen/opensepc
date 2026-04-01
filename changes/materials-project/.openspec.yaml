@@ -1,0 +1,13 @@
+schema: spec-driven
+created: 2026-04-01
+updated: 2026-04-01
+description: 工程项目管理页面功能实现（从 materials-project-product-callback 拆分）
+database:
+  schema: master
+  tables:
+    - master.t_project
+    - master.jck_t_gc_sgxkz
+dependencies:
+  - base-companyinfo
+  - system-product
+  - system-region

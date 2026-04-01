@@ -144,3 +144,11 @@
 - 前端：新增备案产品管理页面 materials/record/index.vue
 - 数据库：使用已迁移的 master.t_record_product 表（6602条数据）+ master.t_companyinfo 表（company_type=2的企业）
 - 权限：新增 materials:record 系列权限配置
+## 2026-04-01 补充说明
+
+- 生产企业的唯一业务关联字段以 `manufacture_id` 为准，关联 `master.t_companyinfo.id`。
+- `manufactur` 视为历史遗留字段，不再作为新增、编辑、查询、回显、校验的主依据。
+- 备案证状态按有效期计算，状态字典统一使用 `certificate_status`。
+- 导入能力按 `batch-import-dialog` 提案组件能力落地。
+- `record_no` 需要严格保证不可重复，不能只依赖应用层校验。
+- `send_flag` 是否作为正式查询/展示字段，需单独确认后再决定是否纳入本提案验收范围。

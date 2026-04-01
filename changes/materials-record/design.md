@@ -177,3 +177,30 @@
 
 3. **Risk**: 后端代码风格与现有系统不一致
    - Mitigation: 使用标准后端代码模板（templates/backend-code-template.md）生成代码，确保代码风格和架构与现有系统保持一致
+## 2026-04-01 设计修订
+
+### 1. 生产企业关联口径
+
+- 以 `manufacture_id` 作为生产企业唯一业务关联字段。
+- `manufactur` 保留在原表中，但仅视为历史遗留字段，不再作为业务主字段。
+- 列表、详情、导入、导出、查询条件、表单回显统一以 `manufacture_id` 关联 `t_companyinfo` 获取企业名称。
+
+### 2. 备案证状态口径
+
+- 备案证状态按有效期计算，不再使用 `enabled_mark` 表达备案证状态。
+- 页面状态字典统一使用 `certificate_status`。
+
+### 3. 删除标记口径
+
+- 业务删除状态统一使用 `del_flag`。
+- `del_flag = 0` 表示未删除，`del_flag = 2` 表示删除。
+- 历史 `enabled_mark` 删除语义需迁移并统一映射到 `del_flag`。
+
+### 4. 导入口径
+
+- 批量导入能力按 `batch-import-dialog` 提案组件能力实现。
+- `materials-record` 不再单独定义一套与组件不一致的导入交互。
+
+### 5. send_flag
+
+- `send_flag` 是否作为正式查询/展示字段，待业务确认后再决定是否纳入本提案验收。

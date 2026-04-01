@@ -520,3 +520,50 @@ export function importRecordData(data) {
 - **Then** 支持覆盖已存在的数据选项
 - **Then** 实现导入接口 `/materials/record/importData`
 - **Then** 返回导入结果（成功数量、失败数量、失败详情）
+
+## 2026-04-01 规格补充
+
+### Requirement: 生产企业以 manufacture_id 为主关联
+
+系统 SHALL 以 `manufacture_id` 作为备案产品与生产企业的唯一业务关联字段。
+
+#### Scenario: 查询和回显生产企业名称
+
+- **Given** `t_record_product.manufacture_id` 已保存生产企业 ID
+- **When** 系统查询、回显、导入、导出备案产品
+- **Then** 应通过 `manufacture_id -> t_companyinfo.id` 关联获取企业名称
+- **Then** `manufactur` 不作为新增、编辑、查询、回显、校验的主依据
+
+### Requirement: 备案证状态按有效期计算
+
+系统 SHALL 根据有效期计算备案证状态，并统一使用 `certificate_status` 字典进行前端展示。
+
+#### Scenario: 计算备案证状态
+
+- **Given** 备案产品存在 `end_time`
+- **When** 当前日期晚于 `end_time`
+- **Then** 状态应为“已过期”
+- **When** 当前日期未晚于 `end_time`
+- **Then** 状态应为“有效”
+
+### Requirement: 备案证号严格唯一
+
+系统 SHALL 严格限制 `record_no` 不可重复。
+
+#### Scenario: 新增或修改备案证号
+
+- **Given** 已存在相同 `record_no` 的未删除记录
+- **When** 用户新增、修改或导入备案产品
+- **Then** 系统应拒绝写入重复备案证号
+- **Then** 不可仅依赖应用层校验，需具备数据库层或等效强约束兜底
+
+### Requirement: 删除状态统一使用 del_flag
+
+系统 SHALL 统一使用 `del_flag` 表示删除状态。
+
+#### Scenario: 判断是否删除
+
+- **Given** 备案产品或企业记录存在删除状态
+- **Then** `del_flag = 0` 表示未删除
+- **Then** `del_flag = 2` 表示删除
+- **Then** 历史删除语义应迁移并统一映射到 `del_flag`
