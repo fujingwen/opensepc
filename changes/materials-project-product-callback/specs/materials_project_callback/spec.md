@@ -29,3 +29,120 @@
 - **When** 执行迁移脚本
 - **Then** 系统应将业务字段写入 `master.t_project`
 - **Then** 系统应补齐 `tenant_id`、`create_dept`、`del_flag`
+
+### `master.t_project` 字段定义
+
+| # | 字段名 | 类型 | 含义 | 前端标签 | 字典/备注 |
+|---|--------|------|------|---------|----------|
+| 1 | id | varchar(50) | 主键ID | - | NOT NULL |
+| 2 | tenant_id | varchar(20) | 租户ID | - | NOT NULL, 默认'000000' |
+| 3 | construction_permit | varchar(100) | 施工许可证 | 施工许可证 | 文本输入 |
+| 4 | permit_issue_date | timestamp | 施工许可证发证日期 | 施工许可证发证日期 | 日期选择 |
+| 5 | project_name | varchar(500) | 工程名称 | 工程名称 | 文本输入 |
+| 6 | project_nature | varchar(100) | 工程性质 | 工程性质 | 字典 gcxz |
+| 7 | building_area | numeric(18,2) | 建筑面积（平方米） | 建筑面积（平方米） | 数字输入 |
+| 8 | project_progress | varchar(100) | 工程进度 | 工程进度 | 字典 gcjd |
+| 9 | project_address | varchar(1000) | 工程地址 | 工程地址 | 文本输入 |
+| 10 | structure_type | varchar(100) | 工程结构型式 | 工程结构型式 | 字典 gcjgxs |
+| 11 | quality_supervision_agency | varchar(500) | 质量监督机构 | 质量监督机构 | 字典 zljdjg |
+| 12 | construction_unit | varchar(500) | 施工单位 | 施工单位 | 文本输入（自动填充当前用户） |
+| 13 | construction_unit_manager | varchar(100) | 施工单位负责人 | 施工单位负责人 | 文本输入 |
+| 14 | manager_contact | varchar(50) | 施工单位负责人联系方式 | 施工单位负责人联系方式 | 文本输入（手机号校验） |
+| 15 | has_report | varchar(20) | 有无填报 | 有无填报 | 字典 has_report |
+| 16 | is_integrated | varchar(20) | 是否对接一体化平台编码 | 是否对接一体化平台编码 | 字典 is_integrated |
+| 17 | remarks | text | 备注 | 备注 | 文本域 |
+| 18 | create_by | varchar(50) | 创建人 | - | 系统字段 |
+| 19 | create_time | timestamp | 创建时间 | 创建时间 | 系统字段 |
+| 20 | update_by | varchar(50) | 更新人 | - | 系统字段 |
+| 21 | update_time | timestamp | 更新时间 | 更新时间 | 系统字段 |
+| 22 | del_flag | integer | 删除标志 | - | 0=存在, 2=删除 |
+| 23 | create_dept | varchar(50) | 创建部门 | - | 默认'103' |
+
+### 字典值映射问题
+
+> **关键问题**：数据库中字典字段（`project_nature`、`project_progress`、`structure_type`、`quality_supervision_agency`）存储的是**旧字典系统的 `F_Id`（长数字ID，如 `270407069977281797`）**，而迁移后的新字典 `master.sys_dict_data` 使用的是**短编码（如 `shqzbjd`、`ggjz`、`lsq`）**作为 `dict_value`。需要进行数据迁移映射。
+
+#### 旧字典值（test.base_dictionarydata）→ 新字典值（master.sys_dict_data）映射关系
+
+**gcjd（工程进度）**
+
+| 旧 F_Id | 旧 F_EnCode / 新 dict_value | 含义 |
+|---------|---------------------------|------|
+| 270407069977281797 | shqzbjd | 施工前准备阶段 |
+| 270407267512222981 | tfkwjjkzhjd | 土方开挖及基坑支护阶段 |
+| 270407374198539525 | jcsgjd | 基础施工阶段 |
+| 270407570366137605 | ztjgqjd | 总体结构1/2前阶段 |
+| 270407698351129861 | ztjghjd | 总体结构1/2后阶段 |
+| 270407816039105797 | zsazjd | 装饰安装阶段 |
+| 270407984524297477 | jgyyjd | 竣工预验阶段 |
+| 270408056989287685 | tg | 停工 |
+
+**gcxz（工程性质）**
+
+| 旧 F_Id | 旧 F_EnCode / 新 dict_value | 含义 |
+|---------|---------------------------|------|
+| 271061974257763589 | ggjz | 公建 |
+| 279039617003422981 | zz | 住宅 |
+| 279038606134215941 | cf | 厂房 |
+| 289157172212794629 | xx | 学校 |
+| 356658908959343877 | dbc | 待补充 |
+| 271061891747415301 | zlrczf | 住宅（人才公寓） |
+| 279038448680043781 | bzf | 保障房 |
+| 279038743212459269 | eczx | 二次装修 |
+| 279038912553288965 | fdc | 房地产 |
+| 279038997563442437 | gt | 工业 |
+| 279039139754542341 | sy | 商业 |
+| 279039258637894917 | tsf | 土石方 |
+| 279039370437068037 | ylyl | 医疗，养老项目 |
+| 279039474296423685 | yey | 幼儿园 |
+| 279039752932427013 | zzgj | 住宅、公建 |
+| 279039886655227141 | zx | 装修 |
+| 279045402236290309 | zzptsy | 住宅及配套商业 |
+| 279126157872334085 | azf | 安置房 |
+| 279125766069814533 | cj | 车间 |
+| 279125456786031877 | jz | 精装 |
+| 279123711913624837 | sz | 商住 |
+
+**gcjgxs（工程结构型式）**
+
+| 旧 F_Id | 旧 F_EnCode / 新 dict_value | 含义 |
+|---------|---------------------------|------|
+| 270410448577234181 | kjjlq | 框架剪力墙 |
+| 270410531842557189 | kjtc | 框架填充 |
+| 270410615921575173 | zhjg | 砖混结构 |
+| 270410708896711941 | hntqk | 混凝土砌块 |
+| 270410828472124677 | qgqb | 轻钢轻板 |
+| 270410906867860741 | gjg | 钢结构 |
+| 270411003403961605 | xjjlq | 现浇剪力墙 |
+| 270411113781265669 | qt | 其他 |
+| 356658817473185029 | dbc | 待补充 |
+
+**zljdjg（质量监督机构）**
+
+| 旧 F_Id | 旧 F_EnCode / 新 dict_value | 含义 |
+|---------|---------------------------|------|
+| 270411841673364741 | lsq | 崂山区 |
+| 270411927065199877 | xhaxq | 西海岸新区 |
+| 270412123044054277 | cyq | 城阳区 |
+| 270412287989253381 | sjcglzx | 青岛市建筑工程管理服务中心 |
+| 270412390082807045 | lxs | 莱西市 |
+| 270412473029362949 | pds | 平度市 |
+| 270412552079410437 | jzs | 胶州市 |
+| 270412633960613125 | xxb | 信息部 |
+| 270412719897707781 | jmq | 即墨区 |
+
+#### 映射方案
+
+通过 `test.base_dictionarydata` 表的 `F_Id`（旧值）与 `F_EnCode`（新值）建立映射，逐字段执行 `UPDATE`：
+
+```sql
+-- 以 project_progress 为例
+UPDATE master.t_project p
+SET project_progress = d."F_EnCode"
+FROM test.base_dictionarydata d
+JOIN test.base_dictionarytype t ON d."F_DictionaryTypeId" = t."F_Id"
+WHERE p.project_progress = d."F_Id"::text
+  AND t."F_EnCode" = 'gcjd';
+```
+
+对 `project_nature`、`structure_type`、`quality_supervision_agency` 同理执行。
