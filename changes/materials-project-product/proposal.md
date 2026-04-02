@@ -94,10 +94,12 @@
   - `openspec/changes/materials-project-product-callback/specs/materials_product_callback/spec.md`
   - `openspec/changes/materials-project-product-callback/specs/quality_trace_dependency_gate/spec.md`
 - SQL
-  - `openspec/changes/materials-project-product-callback/sql/tables/base_t_project.sql`
   - `openspec/changes/materials-project-product-callback/sql/indexes/base_indexes.sql`
   - `openspec/changes/materials-project-product-callback/sql/menu/base_menu.sql`
-  - `openspec/changes/materials-project-product-callback/sql/migrate/migrate_t_project.sql`
+  - `openspec/changes/materials-project-product-callback/sql/tables/create_t_project_product.sql`
+  - `openspec/changes/materials-project-product-callback/sql/migrate/migrate_t_project_product.sql`
+  - `openspec/changes/materials-project/sql/tables/base_t_project.sql`
+  - `openspec/changes/materials-project/sql/migrate/migrate_t_project.sql`
 - Backend
   - `construction-material-backend/hny-modules/hny-materials/src/main/java/com/hny/materials/controller/MatProjectController.java`
   - `construction-material-backend/hny-modules/hny-materials/src/main/java/com/hny/materials/controller/MatProductController.java`

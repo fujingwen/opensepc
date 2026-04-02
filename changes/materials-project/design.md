@@ -81,7 +81,7 @@
 
 - 保留：新增、导出、导出已开工未填报项目表。
 - 移除：批量删除按钮、列表多选列。
-- 导出已开工未填报：过滤条件为工程进度排除 `shqzbjd`（施工前准备阶段）和 `tfkwjjkzhjd`（土方开挖及基坑支护阶段），且 `has_report = '0'`。
+- 导出已开工未填报：过滤条件为工程进度排除 `shqzbjd`（施工前准备阶段）和 `tfkwjjkzhjd`（土方开挖及基坑支护阶段），且 `has_report = '2'`。
 
 ### 6. 兼容策略
 
@@ -110,7 +110,7 @@
 
 - 主查询：`FROM t_project`，LEFT JOIN `t_companyinfo` 获取施工单位名称。
 - 一体化编码查询：`FROM jck_t_gc_sgxkz`，过滤 `sgxkz_zh IS NOT NULL AND sgxkz_zh != '' AND sgxkz_zh != '0'`。
-- 导出已开工未填报：`WHERE project_progress NOT IN ('shqzbjd', 'tfkwjjkzhjd') AND has_report = '0'`。
+- 导出已开工未填报：`WHERE project_progress NOT IN ('shqzbjd', 'tfkwjjkzhjd') AND has_report = '2'`。
 
 ### Service：IMatProjectService / MatProjectServiceImpl
 
@@ -208,4 +208,4 @@ t_project.construction_permit  ←→  jck_t_gc_sgxkz.sgxkz_zh
 1. **字典映射不完整**：如果旧数据中存在 `F_Id` 在 `test.base_dictionarydata` 中找不到对应记录的情况，迁移后字段值会残留旧 ID。需在迁移后验证数据完整性。
 2. **一体化编码匹配率**：test.t_project 中 3,186/3,746 条可匹配到 `jck_t_gc_sgxkz`，约 15% 无法匹配，这部分项目的 `is_integrated` 字段值不会被自动设置。
 3. **表单体验**：一体化编码下拉数据量较大（约 17,872 条有效记录），分页加载 + 远程搜索是必要的，但首次加载可能较慢。
-4. **施工单位字段**：spec 中要求施工单位为下拉选择（来自 `t_companyinfo`），当前实现仍为 disabled 输入框，后续需调整。
+4. **施工单位字段**：数据库当前 `construction_unit` 实际存储的是 `t_companyinfo.id`，并由查询时 LEFT JOIN 补充企业名称；现有迁移 SQL 中“将企业ID映射为企业名称”的语句不应执行，否则会破坏当前实现。

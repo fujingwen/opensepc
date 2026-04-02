@@ -6,8 +6,8 @@
 
 - 将 `test.base_dictionarytype` 中 `F_IsTree = 0`（非树形）的记录迁移到 `master.sys_dict_type`
 - 将 `test.base_dictionarydata` 中对应的字典数据迁移到 `master.sys_dict_data`
-- 迁移前删除 `master.sys_dict_type` 中建材模块手动创建的字典（dict_id 201-305 范围），避免重复
-- 不删除目标表中的其他已有数据
+- 迁移前仅检查并标记 `master.sys_dict_type` / `master.sys_dict_data` 中与待迁移编码冲突的手动数据
+- 不删除目标表中的已有数据，冲突项单独输出并跳过迁移
 
 ## Capabilities
 
@@ -42,10 +42,12 @@
   - 父类型 `F_EnCode` → `dict_type`
   - 补充 `tenant_id` = `'000000'`，`create_dept` = `103`
 
-#### 3. 清理旧手动数据
+#### 3. 冲突检查与跳过策略
 
-- 删除 `master.sys_dict_type` 中 dict_id 在 201-305 范围的建材模块手动字典
-- 对应 `master.sys_dict_data` 中的数据一并删除
+- 检查 `master.sys_dict_type` 中是否存在与源表 `F_EnCode` 冲突的 `dict_type`
+- 检查 `master.sys_dict_data` 中是否存在同 `dict_type + dict_value` 的冲突数据
+- 冲突项只做标记与输出，不做删除
+- 迁移脚本跳过已有编码，保持目标库现有数据不变
 
 ## Impact
 

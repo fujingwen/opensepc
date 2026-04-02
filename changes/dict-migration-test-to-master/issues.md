@@ -14,6 +14,7 @@
 - `cleanup_old_dict.sql` 直接按 `dict_id >= 201 AND dict_id <= 305` 删除 `sys_dict_type/sys_dict_data`，见 `sql/migrate/cleanup_old_dict.sql:7-14`。
 - 这依赖“建材模块手动字典恰好都在 201-305 且只有它们在这个范围内”这一额外前提，但 proposal/spec 并没有把这个前提做成可验证条件。
 - 当前库里确实已经没有 201-305 范围残留数据，但脚本本身仍有误删同区间其他字典的风险。
+- **已处理**：提案/spec/SQL 已统一改为“冲突检查并跳过，不删除已有手动字典”。
 
 ### 中优先级
 

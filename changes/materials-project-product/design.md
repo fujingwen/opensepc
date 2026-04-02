@@ -136,12 +136,16 @@
 
 ### 1. 执行顺序
 
-1. `sql/tables/base_t_project.sql`
-2. `sql/indexes/base_indexes.sql`
-3. `sql/menu/base_menu.sql`
-4. `sql/migrate/migrate_t_project.sql`
+1. `openspec/changes/materials-project/sql/tables/base_t_project.sql`
+2. `openspec/changes/materials-project/sql/migrate/migrate_t_project.sql`
+3. `sql/tables/create_t_project_product.sql`
+4. `sql/indexes/base_indexes.sql`
+5. `sql/menu/base_menu.sql`
+6. `sql/migrate/migrate_t_project_product.sql`
 
 ### 2. `master.t_project`
+
+`t_project` 的建表与迁移 SQL 已拆分回 `materials-project` 变更统一维护，本提案不再保留重复副本，避免出现两套脚本口径漂移。
 
 表职责：
 
@@ -165,12 +169,9 @@
 
 ### 3. 数据迁移
 
-`migrate_t_project.sql` 负责：
-
-- 从 `test.t_project` 补录到 `master.t_project`
-- `tenant_id` 缺失时补默认值 `'000000'`
-- `del_flag` 缺失时补 `0`
-- `create_dept` 缺失时补 `'103'`
+- `openspec/changes/materials-project/sql/migrate/migrate_t_project.sql` 负责项目表迁移
+- `sql/migrate/migrate_t_project_product.sql` 负责产品表迁移
+- 本提案已删除过期的 `t_project` 重复 SQL 文件，后续不得再从本目录执行项目表建表/迁移脚本
 
 ## Risks / Trade-offs
 

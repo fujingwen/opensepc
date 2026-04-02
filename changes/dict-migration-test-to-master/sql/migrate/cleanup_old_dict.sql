@@ -1,16 +1,43 @@
 -- ============================================================
--- 清理旧的建材模块手动字典数据
--- 删除 master.sys_dict_type 中 dict_id 在 201-305 范围的记录
--- 以及对应的 master.sys_dict_data 数据
+-- 迁移前冲突检查
+-- 说明：当前策略是不删除 master 中已有手动字典，只输出与待迁移编码冲突的记录供人工核查
 -- ============================================================
 
--- 先删除关联的字典数据
-DELETE FROM master.sys_dict_data
-WHERE dict_type IN (
-    SELECT dict_type FROM master.sys_dict_type
-    WHERE dict_id >= 201 AND dict_id <= 305
-);
+-- 1. 检查字典类型编码冲突
+SELECT
+    'dict_type_conflict' AS conflict_type,
+    s.dict_id::text AS target_id,
+    s.dict_type,
+    s.dict_name,
+    s.remark
+FROM master.sys_dict_type s
+WHERE EXISTS (
+    SELECT 1
+    FROM test.base_dictionarytype t
+    WHERE COALESCE(t."F_DeleteMark", 0) = 0
+      AND t."F_IsTree" = 0
+      AND t."F_EnCode" = s.dict_type
+)
+ORDER BY s.dict_type;
 
--- 再删除字典类型
-DELETE FROM master.sys_dict_type
-WHERE dict_id >= 201 AND dict_id <= 305;
+-- 2. 检查字典数据编码冲突
+SELECT
+    'dict_data_conflict' AS conflict_type,
+    d.dict_code::text AS target_id,
+    d.dict_type,
+    d.dict_label,
+    d.dict_value,
+    d.remark
+FROM master.sys_dict_data d
+WHERE EXISTS (
+    SELECT 1
+    FROM test.base_dictionarydata sd
+    JOIN test.base_dictionarytype st
+      ON sd."F_DictionaryTypeId" = st."F_Id"
+    WHERE COALESCE(sd."F_DeleteMark", 0) = 0
+      AND COALESCE(st."F_DeleteMark", 0) = 0
+      AND st."F_IsTree" = 0
+      AND st."F_EnCode" = d.dict_type
+      AND sd."F_EnCode" = d.dict_value
+)
+ORDER BY d.dict_type, d.dict_value;

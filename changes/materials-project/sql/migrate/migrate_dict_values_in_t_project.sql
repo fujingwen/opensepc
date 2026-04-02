@@ -3,7 +3,8 @@
 -- 执行日期：2026-03-31
 -- 说明：数据库中 project_nature、project_progress、structure_type、quality_supervision_agency
 --       存储的是旧字典系统的 F_Id（长数字ID），需映射为迁移后新字典的短编码
---       construction_unit 存储的是企业ID，需映射为企业名称
+--       construction_unit 当前存储的是企业ID，并通过查询时关联 t_companyinfo 展示企业名称
+--       不应再将 construction_unit 迁移为企业名称，否则会破坏当前前后端与联表查询口径
 -- ============================================================
 
 -- 1. 工程进度 gcjd（来源：test.base_dictionarydata）
@@ -65,14 +66,10 @@ WHERE p.quality_supervision_agency = o."F_Id"::text;
 -- 预期影响：366 行
 
 -- ============================================================
--- 5. 施工单位 construction_unit（来源：master.t_companyinfo）
--- 将企业ID映射为企业名称
+-- 5. 施工单位 construction_unit
+-- 当前数据库以企业ID作为存储值，展示时通过 LEFT JOIN master.t_companyinfo 获取企业名称。
+-- 此处禁止执行“企业ID -> 企业名称”的更新，避免破坏现有代码和查询口径。
 -- ============================================================
-UPDATE master.t_project p
-SET construction_unit = c.company_name
-FROM master.t_companyinfo c
-WHERE p.construction_unit = c.id::text;
--- 预期影响：1884 行
 
 -- ============================================================
 -- 修正 create_by/update_by：admin → 1

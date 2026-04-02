@@ -84,6 +84,13 @@ WHERE COALESCE(d."F_DeleteMark", 0) = 0
   -- 只迁移已成功写入 sys_dict_type 的类型对应的数据
   AND EXISTS (
       SELECT 1 FROM master.sys_dict_type s WHERE s.dict_type = pt."F_EnCode"
+  )
+  -- 跳过目标库中已存在的同 dict_type + dict_value，避免重复插入
+  AND NOT EXISTS (
+      SELECT 1
+      FROM master.sys_dict_data md
+      WHERE md.dict_type = pt."F_EnCode"
+        AND md.dict_value = d."F_EnCode"
   );
 
 -- 清理临时序列

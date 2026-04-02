@@ -45,7 +45,7 @@
 | 9 | project_address | varchar(1000) | 工程地址 | 工程地址 | 文本输入 |
 | 10 | structure_type | varchar(100) | 工程结构型式 | 工程结构型式 | 字典 gcjgxs |
 | 11 | quality_supervision_agency | varchar(500) | 质量监督机构 | 质量监督机构 | 字典 zljdjg |
-| 12 | construction_unit | varchar(500) | 施工单位 | 施工单位 | 文本输入（自动填充当前用户） |
+| 12 | construction_unit | varchar(500) | 施工单位 | 施工单位 | 存储 `t_companyinfo.id`，展示时关联企业名称 |
 | 13 | construction_unit_manager | varchar(100) | 施工单位负责人 | 施工单位负责人 | 文本输入 |
 | 14 | manager_contact | varchar(50) | 施工单位负责人联系方式 | 施工单位负责人联系方式 | 文本输入（手机号校验） |
 | 15 | has_report | varchar(20) | 有无填报 | 有无填报 | 字典 has_report |
@@ -202,6 +202,8 @@ master.t_project.construction_permit  ←→  master.jck_t_gc_sgxkz.sgxkz_zh
 
 ### Requirement: 新增表单字段调整
 
+系统 SHALL 在新增/编辑工程项目时，按最新页面交互规则调整字段显示、必填性和施工单位选择方式。
+
 #### Scenario: 新增时的字段规则
 
 - **Given** 用户新增工程项目
@@ -210,6 +212,8 @@ master.t_project.construction_permit  ←→  master.jck_t_gc_sgxkz.sgxkz_zh
 - **Then** 施工单位字段为下拉选择（来自 `t_companyinfo`），非 disabled 输入框
 
 ### Requirement: 列表操作按钮
+
+系统 SHALL 在工程项目列表页仅保留单条维护操作，并提供导出与导出已开工未填报项目表能力。
 
 #### Scenario: 操作按钮
 
@@ -220,6 +224,6 @@ master.t_project.construction_permit  ←→  master.jck_t_gc_sgxkz.sgxkz_zh
 #### Scenario: 导出已开工未填报项目表
 
 - **Given** 用户点击"导出已开工未填报项目表"
-- **Then** 系统导出工程进度排除"施工前准备阶段(shqzbjd)"和"土方开挖及基坑支护阶段(tfkwjjkzhjd)"且"有无填报"为"否"的项目
+- **Then** 系统导出工程进度排除"施工前准备阶段(shqzbjd)"和"土方开挖及基坑支护阶段(tfkwjjkzhjd)"且"有无填报"为"否(`has_report='2'`)"的项目
 - **Then** 导出表名为"工程信息管理"
 - **Then** 导出字段：工程名称、施工许可证、工程进度、工程地址、施工单位、施工单位现场负责人、施工单位现场负责人联系方式、质量监督机构、填报状态
