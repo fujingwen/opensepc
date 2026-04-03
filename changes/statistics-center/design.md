@@ -35,7 +35,7 @@
 - `master.sys_dict_data`
   - 质量监督机构字典标签解析
 - `master.base_province`
-  - 省/市/区名称解析
+  - 省、市、区名称解析
 
 ## 3. 查询口径
 
@@ -52,13 +52,12 @@
 统计分析直接输出项目建材明细，不做分组聚合。
 
 字段映射：
-
 - 工程名称：`p.project_name`
-- 产品类别：优先展示 `sys_product.full_name` 解析结果
-- 产品名称：优先展示 `sys_product.full_name` 解析结果
-- 产品规格：优先展示规格名称，回退到原始 `product_standard` / `product_standard_select`
-- 质量监督机构：优先展示字典标签，回退到原始值
-- 生产单位省市区：优先展示地区名称拼接后的 `省/市/区`，回退到原始 `area`
+- 产品类别：优先显示 `sys_product.full_name` 解析结果
+- 产品名称：优先显示 `sys_product.full_name` 解析结果
+- 产品规格：优先显示规格名称，回退到原始 `product_standard` / `product_standard_select`
+- 质量监督机构：优先显示字典标签，回退到原始值
+- 生产单位省市区：优先显示后端按区域编码解析后的 `省/市/区` 文本，回退到原始 `area`
 - 价格：`pp.unit_price`
 - 数量：`pp.quantity`
 - 进场时间：`pp.approach_time`
@@ -113,14 +112,12 @@
 
 ### 5.2 导出接口
 
-- `POST /materials/statistics/analysis/exportSchedule`
-- `POST /materials/statistics/analysis/exportConfirmation`
 - `POST /materials/statistics/purchase/export`
 
 说明：
 
 - 采购价格分析导出接口可用
-- 统计分析两个导出入口当前仅完成页面占位，后续再补齐
+- 统计分析“工作调度表 / 信息确认情况表”导出暂不纳入本次交付，先记录为未解决问题，不在本次设计中承诺接口交付
 
 ### 5.3 筛选项接口
 
@@ -145,7 +142,7 @@
 - 产品类别、产品名称必选
 - 生产单位省市区使用 `RegionSelect`
 - 合计行展示全量总条数、总数量、总金额
-- 导出按钮保留在工具栏，但暂时显示待实现提示
+- 表格中的生产单位省市区直接使用后端返回文本，不再逐条前端补查
 
 ### 6.3 采购价格分析交互
 
@@ -158,4 +155,5 @@
 
 1. 当前实现仍基于业务明细表直接查询，未做物化统计表，后续数据量继续增长时可能需要单独优化。
 2. 生产单位省市区依赖 `manufacturer_id -> t_companyinfo.area -> base_province`，若历史数据未建立完整企业映射或行政区划编码不规范，则可能仍需回退展示原始值。
-3. 统计分析两个导出文件当前尚未按原型补齐最终内容，只保留入口说明。
+3. 统计分析两个导出文件当前不纳入本次交付，需在后续独立需求中补齐。
+4. 当前未解决问题统一维护在 `openspec/原型/原型文件/未解决问题/statistics-center-unresolved-issues.md`。
