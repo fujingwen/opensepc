@@ -2,12 +2,12 @@
 
 ## 1. 总体目标
 
-在不新增统计业务表的前提下，直接基于主业务数据表构建两个只读统计页面：
+在不新增统计业务表的前提下，直接基于业务明细表构建两个只读统计页面：
 
 1. 统计分析
 2. 采购价格分析
 
-本次设计重点是统一口径，而不是做离线汇总或大屏指标沉淀。
+本次设计重点是统一查询口径、筛选交互、字典展示和汇总规则，而不是做离线汇总。
 
 ## 2. 数据来源
 
@@ -19,8 +19,9 @@
   - 产品规格：`product_standard` / `product_standard_select`
   - 产品数量：`quantity`
   - 产品价格：`unit_price`
+  - 产品单位：`unit`
   - 进场时间：`approach_time`
-  - 填报时间：`filling_time`
+  - 填报时间：`filling_time` / `create_time`
 
 ### 2.2 关联表
 
@@ -28,79 +29,133 @@
   - 工程名称：`project_name`
   - 质量监督机构：`quality_supervision_agency`
 - `master.t_companyinfo`
-  - 生产单位省市区：`area`
+  - 生产单位区域编码：`area`
+- `master.sys_product`
+  - 产品类别名称、产品名称、规格名称解析
+- `master.sys_dict_data`
+  - 质量监督机构字典标签解析
+- `master.base_province`
+  - 省/市/区名称解析
 
 ## 3. 查询口径
 
-### 3.1 统计分析
+### 3.1 产品类别、产品名称、产品规格
 
-统计分析直接输出项目建材明细，不做聚合汇总，原因如下：
+- 查询场景统一对齐建材产品页面 `materials/product`
+- 产品类别使用 `sys_product` 类别节点 ID
+- 产品名称使用 `sys_product` 产品节点 ID
+- 产品规格使用 `productStandardSelect` 中的规格节点 ID
+- 前端统一通过公共三级联动组件选择
 
-- 原型列表本身就是明细表格
-- 后续导出工作调度表和信息确认情况表都需要保留明细粒度
-- 质量追溯和价格分析也能复用相同查询口径
+### 3.2 统计分析
+
+统计分析直接输出项目建材明细，不做分组聚合。
 
 字段映射：
 
 - 工程名称：`p.project_name`
-- 产品类别：`pp.product_type`
-- 产品名称：`pp.product_name`
-- 产品规格：`coalesce(nullif(pp.product_standard, ''), pp.product_standard_select)`
-- 质量监督机构：`p.quality_supervision_agency`
-- 生产单位省市区：`mc.area`
+- 产品类别：优先展示 `sys_product.full_name` 解析结果
+- 产品名称：优先展示 `sys_product.full_name` 解析结果
+- 产品规格：优先展示规格名称，回退到原始 `product_standard` / `product_standard_select`
+- 质量监督机构：优先展示字典标签，回退到原始值
+- 生产单位省市区：优先展示地区名称拼接后的 `省/市/区`，回退到原始 `area`
 - 价格：`pp.unit_price`
 - 数量：`pp.quantity`
 - 进场时间：`pp.approach_time`
 - 填报时间：`coalesce(pp.filling_time, pp.create_time)`
 
-### 3.2 采购价格分析
+### 3.3 采购价格分析
 
-采购价格分析与统计分析共享相同数据源，但页面重点调整为价格视角：
+采购价格分析与统计分析共用相同数据源，但页面重点调整为价格视角：
 
 - 仍按明细展示
-- 默认排序按填报时间倒序、ID倒序
-- 保留工程名称和质量监督机构，便于比对同类产品价格差异
+- 默认排序按填报时间倒序、ID 倒序
+- 保留工程名称和质量监督机构，便于比较同类产品价格差异
+- 汇总不展示总数量和总金额，改为展示平均价格
 
-## 4. 接口设计
+## 4. 汇总规则
 
-### 4.1 查询接口
+### 4.1 统计分析
+
+返回全量汇总信息：
+
+- `totalCount`
+- `totalQuantity`
+- `totalAmount`
+- `totalUnit`
+
+展示规则：
+
+- 合计行显示全量数据，不受分页限制
+- 总数量、总金额保留两位小数
+- 当筛选结果只有一个单位时，总数量显示“数量 + 单位”
+
+### 4.2 采购价格分析
+
+返回全量汇总信息：
+
+- `totalCount`
+- `avgPrice`
+
+展示规则：
+
+- 合计行显示“平均价格”
+- 平均价格保留两位小数
+
+## 5. 接口设计
+
+### 5.1 查询接口
 
 - `GET /materials/statistics/analysis/list`
+- `GET /materials/statistics/analysis/summary`
 - `GET /materials/statistics/purchase/list`
+- `GET /materials/statistics/purchase/summary`
 
-### 4.2 导出接口
+### 5.2 导出接口
 
 - `POST /materials/statistics/analysis/exportSchedule`
 - `POST /materials/statistics/analysis/exportConfirmation`
 - `POST /materials/statistics/purchase/export`
 
-### 4.3 下拉选项接口
+说明：
+
+- 采购价格分析导出接口可用
+- 统计分析两个导出入口当前仅完成页面占位，后续再补齐
+
+### 5.3 筛选项接口
 
 - `GET /materials/statistics/options/projects`
-- `GET /materials/statistics/options/productTypes`
-- `GET /materials/statistics/options/productNames`
-- `GET /materials/statistics/options/productSpecs`
 - `GET /materials/statistics/options/qualityAgencies`
-- `GET /materials/statistics/options/areas`
 
-## 5. 前端设计
+说明：
 
-### 5.1 页面结构
+- 产品类别、产品名称、产品规格不再依赖统计模块独立下拉接口，前端直接复用 `system/product` 口径
+- 生产单位省市区查询条件改为前端使用 `RegionSelect` 组件选择地区编码
 
-- 顶层菜单：`统计中心`
-- 子页面
-  - `statistics/analysis/index`
-  - `statistics/price/index`
+## 6. 前端设计
 
-### 5.2 交互原则
+### 6.1 公共能力
 
-- 查询条件使用下拉和时间范围组合
-- 列表使用标准分页
-- 首屏默认加载第一页数据和下拉选项
-- 导出沿用系统统一 `proxy.download` 方式
+- 公共组件：`construction-material-web/src/components/ProductCascadeSelect/index.vue`
+- 公共工具：`construction-material-web/src/utils/materials.js`
 
-## 6. 风险与限制
+### 6.2 统计分析交互
 
-1. 当前实现基于业务明细表直接查询，未做物化统计表，后续数据量进一步增长时可能需要单独优化。
-2. 生产单位省市区依赖 `manufacturer_id -> t_companyinfo.area`，若历史数据未完成企业映射，则该列可能为空。
-3. “导出工作调度表”和“导出信息确认情况表”当前复用相同明细数据口径，区别体现在导出文件名称和业务语义上；若后续需要差异化列结构，可在此变更上继续扩展。
+- 首屏只加载基础选项，不自动查询
+- 产品类别、产品名称必选
+- 生产单位省市区使用 `RegionSelect`
+- 合计行展示全量总条数、总数量、总金额
+- 导出按钮保留在工具栏，但暂时显示待实现提示
+
+### 6.3 采购价格分析交互
+
+- 首屏只加载基础选项，不自动查询
+- 产品类别、产品名称、产品规格必选
+- 导出按钮放在工具栏
+- 合计行展示平均价格
+
+## 7. 风险与限制
+
+1. 当前实现仍基于业务明细表直接查询，未做物化统计表，后续数据量继续增长时可能需要单独优化。
+2. 生产单位省市区依赖 `manufacturer_id -> t_companyinfo.area -> base_province`，若历史数据未建立完整企业映射或行政区划编码不规范，则可能仍需回退展示原始值。
+3. 统计分析两个导出文件当前尚未按原型补齐最终内容，只保留入口说明。

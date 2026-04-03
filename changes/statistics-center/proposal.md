@@ -1,44 +1,49 @@
 ## Why
 
-当前系统已经具备统计中心所需的主数据基础，但还没有正式的统计页面与接口：
+当前系统已经具备统计中心所需的主要业务数据，但原型中的“统计分析”和“采购价格分析”页面仍需要统一查询口径、查询交互和汇总展示规则。
 
-- 工程项目已回调到 `master.t_project`
-- 建材产品主链已明确为 `master.t_project_product`
-- 企业归属和生产地信息可通过 `master.t_companyinfo` 解释
+本次变更除了落地统计中心页面与接口外，还补充对齐了原型和实际使用习惯：
 
-原型中已经明确存在两个统计中心页面：
-
-1. `统计分析`
-2. `采购价格分析`
-
-如果继续缺少统计层实现，后续质量追溯、大屏展示、价格横向比对都会缺少统一查询口径。因此需要新增一个独立 OpenSpec 变更，把统计中心模块完整落地。
+- 统计分析页的产品类别、产品名称、产品规格取值方式，统一与建材产品页面 `materials/product` 一致
+- 前端将产品类别/名称/规格三级联动提取为公共能力，便于多页面复用
+- 统计分析页首次进入时不自动查询，且产品类别、产品名称为必选
+- 采购价格分析页首次进入时不自动查询，且产品类别、产品名称、产品规格为必选
+- 质量监督机构统一按字典标签展示，不再直接显示编码
+- 生产单位省市区统一按基础数据中的企业区域编码转换为“省/市/区”文本
+- 统计分析页展示全量合计；采购价格分析页展示平均价格
 
 ## What Changes
 
 - 新建 `statistics-center` 变更
-- 新增 `统计中心` 顶层菜单
+- 新增顶层菜单 `统计中心`
   - `统计分析`
   - `采购价格分析`
 - 新增统计中心只读查询接口
   - 统计分析分页查询
+  - 统计分析全量汇总查询
   - 采购价格分析分页查询
-  - 筛选项下拉数据查询
-  - 统计分析导出
-- 统计口径统一建立在以下表上
+  - 采购价格分析全量汇总查询
+  - 基础筛选项查询
+- 统一统计口径建立在以下数据源上
   - `master.t_project_product`
   - `master.t_project`
   - `master.t_companyinfo`
+  - `master.sys_product`
+  - `master.sys_dict_data`
+  - `master.base_province`
 
 ## Capabilities
 
 ### New Capabilities
 
 - `statistics_analysis`
-  - 按工程、产品、监督机构、生产单位省市区、进场时间、填报时间查询建材统计结果
+  - 按工程、产品、质量监督机构、生产单位省市区、进场时间、填报时间查询建材明细
+  - 支持全量合计展示
   - 导出工作调度表
   - 导出信息确认情况表
 - `purchase_price_analysis`
-  - 按产品类别、产品名称、产品规格、监督机构、进场时间、填报时间查询采购价格明细
+  - 按产品、质量监督机构、进场时间、填报时间查询采购价格明细
+  - 支持平均价格汇总展示
 
 ### Capability Details
 
@@ -55,6 +60,11 @@
   - 生产单位省市区
   - 进场时间范围
   - 填报时间范围
+- 原型对齐规则
+  - 产品类别、产品名称为必选
+  - 首次进入页面不自动查询
+  - 产品三级联动口径与 `materials/product` 保持一致
+  - 生产单位省市区使用地区选择组件筛选
 - 列表字段
   - 工程名称
   - 产品类别
@@ -66,6 +76,10 @@
   - 数量
   - 进场时间
   - 填报时间
+- 合计规则
+  - 在表格最后一行展示全量总条数、总数量、总金额
+  - 总数量、总金额保留两位小数
+  - 总数量带单位
 
 #### 2. 采购价格分析
 
@@ -78,6 +92,10 @@
   - 质量监督机构
   - 进场时间范围
   - 填报时间范围
+- 原型对齐规则
+  - 产品类别、产品名称、产品规格为必选
+  - 首次进入页面不自动查询
+  - 导出按钮位置与统计分析页保持一致，位于工具栏
 - 列表字段
   - 产品类别
   - 产品名称
@@ -88,18 +106,24 @@
   - 质量监督机构
   - 进场时间
   - 填报时间
+- 汇总规则
+  - 不展示总数量、总金额
+  - 展示平均价格，保留两位小数
 
 ## Manual Alignment
 
-对照《青岛市建设工程材料信息管理平台操作手册》，当前统计中心提案与手册有两处差异需要显式记录：
+对照《青岛市建设工程材料信息管理平台操作手册》，当前变更与手册存在以下关系：
 
-- 手册中的“统计分析”要求查询时至少选择“产品类别”和“产品名称”，当前提案与实现尚未加这一前置校验。
-- 手册只覆盖“统计分析”，未描述“采购价格分析”；因此 `purchase_price_analysis` 属于超出手册的扩展能力。
+- 手册中的“统计分析”要求查询时至少选择“产品类别”和“产品名称”，本次变更已补齐该前置校验
+- `purchase_price_analysis` 属于在手册范围之外的扩展能力，需要继续在提案与规格中明确标记
+
+## Current Status Notes
+
+- 统计分析页两个导出按钮目前仅完成入口占位与待实现提示，实际导出文件内容仍待后续补齐
 
 ## Impact
 
 - OpenSpec
-  - `openspec/changes/statistics-center/.openspec.yaml`
   - `openspec/changes/statistics-center/proposal.md`
   - `openspec/changes/statistics-center/design.md`
   - `openspec/changes/statistics-center/tasks.md`
@@ -113,8 +137,10 @@
   - `MatStatisticsServiceImpl`
   - `MatStatisticsMapper`
   - `MatStatisticsMapper.xml`
-  - 相关 bo / vo 文件
+  - 相关 BO / VO
 - Frontend
   - `construction-material-web/src/api/statistics/analysis.js`
+  - `construction-material-web/src/components/ProductCascadeSelect/index.vue`
+  - `construction-material-web/src/utils/materials.js`
   - `construction-material-web/src/views/statistics/analysis/index.vue`
   - `construction-material-web/src/views/statistics/price/index.vue`
