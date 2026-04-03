@@ -1,44 +1,48 @@
-# 提案与设计规范
+# 提案与设计规则
 
 ## 字典生成准则
 
-- 生成字典 SQL 时，必须询问用户指定 `dict_id` 和 `dict_code` 的起始值。
-- `dict_id`（字典类型 ID）必须在 `sys_dict_type` 表中保持唯一，建议使用 100-999 范围。
-- `dict_code`（字典数据编码）必须在 `sys_dict_data` 表中保持唯一，建议使用 1-999 范围。
-- 确保所有的字典类型中 `dict_code` 的值全局唯一。
+- 生成字典 SQL 时，必须确认 `dict_id` 和 `dict_code` 的分配策略。
+- `dict_id` 在 `sys_dict_type` 中必须唯一。
+- `dict_code` 在 `sys_dict_data` 中必须唯一。
+- 同一套字典迁移中，必须保证编码口径一致。
 
-## 命名规范规则
+## 命名规范
 
 - 必须遵循 `common/common_architecture/spec.md` 中的模块命名、包结构和文件命名规范。
-- Spec（规范）所在的多层路径和文件命名**必须一律使用下划线蛇形命名法 (snake_case)**（例如：`base_agent`, `materials_record`）。
-- 创建新功能模块时，命名格式建议为：`前端模块名_页面名称`。
-- 对现有规范进行扩展时，需使用 `_extend` 后缀（例如：`materials_record_extend`）。
-- 公共规范必须使用 `common_` 前缀（例如：`common_architecture`, `common_backend_development`）。
+- Spec 所在多层路径和文件名统一使用 `snake_case`。
+- 创建新功能模块时，命名应清晰反映业务模块和页面能力。
+- 对现有规格做扩展时，使用可表达关系的后缀命名。
+- 公共规格使用 `common_` 前缀。
 
 ## 数据库与表结构设计
 
-- 所有的业务数据表**必须包含** `tenant_id` 字段以支持多租户数据隔离机制。
-- `tenant_id` 的字段规范定死为：`varchar(20) NOT NULL DEFAULT '000000'`。
-- 在设计阶段必须为该字段加上索引项：`idx_{table_name}_tenant_id`。
-- 必须为该字段配置注释："租户编号"。
-- 在建立和生成基础建表语句 (base table SQL) 时，必须自动将 `tenant_id` 列放到紧贴着主键 `id` 之后的**第二个列位**。
-- 其他数据库表和字段规范（包含审计类型的字段）需严格遵循 `common/common_architecture/spec.md`。
+- 所有业务数据表必须包含 `tenant_id` 字段。
+- `tenant_id` 推荐定义为 `varchar(20) NOT NULL DEFAULT '000000'`。
+- 设计阶段必须考虑 `tenant_id` 索引。
+- 基础建表 SQL 中，`tenant_id` 应紧跟主键 `id` 之后。
 
 ## 提案文档要求
 
-- 生成文档在框架与排版上必须完全遵循 `common/common_architecture/spec.md` 给出的格式标准。
-- 完整的提案（Proposal）必须全方位包含前端视角的界面呈现要求以及后端业务驱动实现的技术细节。
-- 提案文档内容中**不要**杂糅进去路由配置（Route configuration）的信息。
+- 提案文档格式必须遵循架构规范。
+- Proposal 需要同时覆盖前端界面要求和后端实现要点。
+- 提案内容中不要混入无关的路由配置细节。
 
-## 提案 Impact 部分要求
+## Impact 要求
 
-- **必须**在 Impact 部分列出生成的所有文件清单，包括：
-  - SQL 文件（建表、序列、索引、字典、菜单等）
-  - 后端文件（Entity、Bo、Vo、Mapper、Service、Controller 等）
-  - 前端文件（API、页面组件等）
-- 文件路径应相对于项目根目录
+- 必须列出所有受影响文件。
+- 必须覆盖 SQL、后端、前端三类资产。
+- 文件路径应相对于项目根目录。
 
 ## 数据库类型规范
 
-- PostgreSQL 不支持 `tinyint` 类型，应使用 `smallint` 代替
-- 建表 SQL 中应避免使用 MySQL 特有类型
+- PostgreSQL 不支持 `tinyint`，应使用 `smallint`。
+- 建表 SQL 中应避免 MySQL 特有类型。
+
+## 提案审查补充规则
+
+- 提案、design、issues 中凡是涉及数据库字段语义、字典值口径、迁移策略的内容，必须与真实数据库现状核对一致；若尚未核库，必须明确标注为待验证假设。
+- 判断一个问题“是否已解决”时，必须分别说明是代码已修复、数据库已落库，还是文档已统一，不能把三者混成一个结论。
+- 同一张表的建表、迁移、数据修正 SQL 只能保留一个生效来源；提案拆分、合并或被替代后，旧目录中的重复 SQL 必须删除或明确废弃。
+- 删除或废弃 SQL 文件后，proposal、design、issues 中的执行顺序、Impact 清单、文件引用必须同步更新。
+- 若迁移策略调整为“仅检查并跳过冲突”或“保留旧数据”，提案、design、issues 与 SQL 脚本必须同时改到一致，不能出现文档与脚本口径冲突。

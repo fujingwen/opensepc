@@ -1,7 +1,56 @@
 # 问题记录规则
 
-- Every change MUST create an issues.md file in the change directory
-- If no issues were encountered, create issues.md with "No issues encountered" message
-- issues.md MUST follow the format specified in common/common_architecture/spec.md
-- When archiving a change, issues.md MUST be included in the archive
-- All issues MUST be documented with: error message, root cause, solution, impact scope, and related documentation updates
+## 基本要求
+
+- 每个 change 都必须在变更目录中维护 `issues.md`。
+- 如果当前未发现问题，也必须保留 `issues.md`，并明确写明暂无问题。
+- `issues.md` 必须遵循 `common/common_architecture/spec.md` 的格式要求。
+- change 归档时，`issues.md` 必须一并归档。
+
+## 单条问题的记录内容
+
+- 问题描述：明确指出现象、涉及模块和影响对象。
+- 根因：说明是文档问题、代码问题、SQL 问题、数据库现状问题，还是多者不一致。
+- 当前状态：必须使用清晰状态，如“待处理”“部分解决”“已解决”“已验证”。
+- 影响范围：说明影响的是前端、后端、SQL、数据库、导出、权限还是提案文档。
+- 处理结论：记录已完成修改、剩余缺口、是否需要继续跟进。
+- 关联更新：记录是否同步更新了 proposal、design、spec、SQL、代码或数据库。
+
+## 状态判定规则
+
+- `待处理`：问题已确认存在，但还没有完成有效修复。
+- `部分解决`：仅修复了代码、文档或数据库中的一部分，仍存在剩余缺口或口径不一致。
+- `已解决`：代码、提案文档、SQL 资产口径已经统一，且不存在已知剩余缺口。
+- `已验证`：在“已解决”的基础上，已经通过数据库核查、编译、构建、测试或实际查询进一步确认。
+
+## 已解决判断要求
+
+- 判断一个问题是否已解决时，必须分别说明：
+- 代码是否已修复。
+- 数据库是否已落库或已核查现状。
+- 文档是否已同步更新。
+- 若三者中仍有一项未完成，一般不得直接标记为“已解决”，应优先标记为“部分解决”。
+
+## 划线规则
+
+- 只有在问题已达到“已解决”或“已验证”时，才可以在 `issues.md` 中使用删除线标记原问题。
+- 使用删除线后，必须在该条目下补充一句简短结论，说明为什么可以划掉。
+- 对“部分解决”的问题不得直接整条划掉，应保留问题标题，并在条目下明确列出已完成项和剩余项。
+
+## 数据库核查规则
+
+- 涉及字段语义、字典值、迁移结果、历史数据修正时，优先以真实数据库核查结果为准。
+- 如果结论来自数据库核查，必须写明核查对象，例如表名、字段、匹配关系或统计结果。
+- 如果尚未连库核查，必须明确说明当前结论仅基于代码、SQL 或文档，不能写成数据库已确认。
+
+## 文档与代码联动规则
+
+- 如果问题涉及 proposal、design、spec 与实现不一致，必须把“不一致”本身作为问题的一部分记录下来。
+- SQL 文件被删除、替换、废弃后，必须同步更新 `issues.md` 中对应的结论和引用。
+- 提案口径变化后，`issues.md` 中的历史结论也必须同步修正，避免保留过期判断。
+
+## 审查输出要求
+
+- 优先记录高风险和会误导后续执行的问题。
+- 对数据库已证伪的旧判断，要及时在 `issues.md` 中更正，不能继续保留误判结论。
+- 对仍需继续跟进的问题，应在文末集中列出“剩余问题”或“待验证事项”。

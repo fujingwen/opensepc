@@ -66,11 +66,11 @@ ON CONFLICT (dict_id) DO NOTHING;
 
 INSERT INTO "master"."sys_dict_data" (dict_code, tenant_id, dict_sort, dict_label, dict_value, dict_type, css_class, list_class, is_default, create_by, create_time, remark)
 VALUES
-  (701, '000000', 1, '待信息确认', '1', 'info_confirm_status', '', 'warning', 'Y', 103, now(), ''),
-  (702, '000000', 2, '信息确认通过', '2', 'info_confirm_status', '', 'success', 'N', 103, now(), ''),
-  (703, '000000', 3, '信息确认不通过', '3', 'info_confirm_status', '', 'danger', 'N', 103, now(), ''),
-  (704, '000000', 4, '待再次信息确认', '4', 'info_confirm_status', '', 'warning', 'N', 103, now(), ''),
-  (705, '000000', 5, '信息确认再次不通过', '5', 'info_confirm_status', '', 'danger', 'N', 103, now(), '');
+  (701, '000000', 1, '待信息确认', '0', 'info_confirm_status', '', 'warning', 'Y', 103, now(), ''),
+  (702, '000000', 2, '信息确认通过', '1', 'info_confirm_status', '', 'success', 'N', 103, now(), ''),
+  (703, '000000', 3, '信息确认不通过', '2', 'info_confirm_status', '', 'danger', 'N', 103, now(), ''),
+  (704, '000000', 4, '待再次信息确认', '3', 'info_confirm_status', '', 'warning', 'N', 103, now(), ''),
+  (705, '000000', 5, '信息确认再次不通过', '4', 'info_confirm_status', '', 'danger', 'N', 103, now(), '');
 
 -- 信息确认超时
 INSERT INTO "master"."sys_dict_type" (dict_id, tenant_id, dict_name, dict_type, create_by, create_time, remark)
@@ -108,7 +108,7 @@ ON CONFLICT (dict_id) DO NOTHING;
 INSERT INTO "master"."sys_dict_data" (dict_code, tenant_id, dict_sort, dict_label, dict_value, dict_type, css_class, list_class, is_default, create_by, create_time, remark)
 VALUES
   (715, '000000', 1, '有', '1', 'has_certificate_number', '', 'success', 'N', 103, now(), ''),
-  (716, '000000', 2, '无', '2', 'has_certificate_number', '', 'danger', 'N', 103, now(), '');
+  (716, '000000', 2, '无', '0', 'has_certificate_number', '', 'danger', 'N', 103, now(), '');
 
 -- 建材产品工程进度
 INSERT INTO "master"."sys_dict_type" (dict_id, tenant_id, dict_name, dict_type, create_by, create_time, remark)

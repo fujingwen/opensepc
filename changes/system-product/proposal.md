@@ -185,7 +185,7 @@ category_id 使用规则：
 | /system/product/{id} | DELETE | 删除产品（类别和产品共用） |
 | /system/product | POST | 新增产品 |
 | /system/product/hasChild/{parentId} | GET | 检查是否有子节点 |
-| /system/product/{id} | GET | 获取产品详情 |
+| /system/product/{id} | GET | 获取产品详情。|
 
 > **说明**：编辑和删除类别与产品共用同一接口，通过 nodeType 区分数据类型。
 
@@ -196,7 +196,7 @@ category_id 使用规则：
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | fullName | String | 名称（模糊查询） |
-| enabledMark | Integer | 状态（精确匹配） |
+| enabledMark | Integer | 状态（精确匹配）|
 
 ### 返回字段说明
 
