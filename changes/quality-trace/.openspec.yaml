@@ -1,7 +1,7 @@
 name: quality-trace
 display_name: 质量追溯模块
-description: 抽测缺陷建材产品页面，用于展示和管理抽测过程中发现的缺陷建材产品信息
-version: 1.0.0
+description: 质量追溯模块包含抽测缺陷建材产品、检测缺陷建材产品、缺陷建材使用情况、缺陷建材厂家四个页面
+version: 1.1.0
 status: draft
 author: AI Assistant
 created_date: 2026-03-25
@@ -9,12 +9,28 @@ created_date: 2026-03-25
 modules:
   - name: quality_trace_spot_testing
     display_name: 抽测缺陷建材产品
-    description: 抽测缺陷建材产品管理功能
+    description: 基于主库质量追溯数据的缺陷产品管理页面
     page_path: quality/spot-testing
     component: quality/spot-testing/index
+  - name: quality_trace_detect_testing
+    display_name: 检测缺陷建材产品
+    description: 外部数据优先的检测缺陷产品页面
+    page_path: quality/detect-testing
+    component: quality/detect-testing/index
+  - name: quality_trace_usage
+    display_name: 缺陷建材使用情况
+    description: 外部数据优先的缺陷建材使用情况页面
+    page_path: quality/usage
+    component: quality/usage/index
+  - name: quality_trace_factory
+    display_name: 缺陷建材厂家
+    description: 外部数据优先的缺陷建材厂家页面
+    page_path: quality/factory
+    component: quality/factory/index
 
 dependencies:
   - base-companyinfo
+  - materials-project-product
 
 tags:
   - 质量追溯

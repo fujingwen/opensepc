@@ -1,175 +1,132 @@
-# 抽测缺陷建材产品 - 提案文档
+# 质量追溯模块
 
 ## Why
 
-质量追溯模块是建材监管系统的重要组成部分，用于记录和管理建材产品的质量检测数据。抽测缺陷建材产品页面是质量追溯模块的子页面，用于展示抽测过程中发现的缺陷建材产品信息。
+当前 `quality-trace` 提案只覆盖了“抽测缺陷建材产品”单页，且仍以旧库字段命名为准，和当前仓库、原型截图、数据库真实情况均不一致：
 
-当前数据存储在 test 模式下的 t_quality_trace 表中，需要迁移到 master 模式下，以符合系统整体架构要求。
+- 原型实际包含 4 个页面：
+  - 抽测缺陷建材产品
+  - 检测缺陷建材产品
+  - 缺陷建材使用情况
+  - 缺陷建材厂家
+- `master.t_quality_trace` 已存在且已完成历史迁移，真实字段为 `batch_no`，不是旧提案中的 `batch`
+- `test.t_product_relation` 仅存在于 `test`，`master` 尚未落地对应关系表
+- “检测缺陷建材产品 / 缺陷建材使用情况 / 缺陷建材厂家”这 3 个页面存在外部数据接入可能，当前无法仅凭现有主库数据完全还原其业务语义
+
+因此需要将提案修订为“四页完整方案 + 分层实施方案”：
+
+- 对可确认的数据能力先真实落地
+- 对仍依赖外部数据的数据口径先保留前端 UI 和标准接口契约
 
 ## What Changes
 
-- 将 test.t_quality_trace 表迁移到 master.t_quality_trace
-- 按照数据库设计规范添加审计字段（create_by, create_time, update_by, update_time, del_flag, tenant_id, create_dept）
-- 实现抽测缺陷建材产品页面的查询、导入、删除功能
-- 配置对应的菜单和字典
+- 将 `quality-trace` 变更扩展为 4 个页面的完整模块
+- 修正 `t_quality_trace` 的字段口径，统一使用真实字段 `batch_no`
+- 新增 `master.t_product_relation` 设计，用于承接历史关系和后续闭环/隐藏状态
+- 为“检测缺陷建材产品”补充复检合格所需字段
+- 将“缺陷建材使用情况”“缺陷建材厂家”定义为外部数据优先接入页：
+  - 前端页面本次完成
+  - 后端先提供占位接口与统一返回结构
+  - 等外部数据源明确后再切换实现
+- 补齐 4 个页面对应的菜单、权限点、接口与 SQL 资产
 
 ## Capabilities
 
-### New Capabilities
+### quality_trace_spot_testing
 
-- `quality_trace_spot_testing`: 抽测缺陷建材产品管理
+抽测缺陷建材产品管理：
 
-### 1. 数据迁移功能
+- 查询
+- 导入
+- 删除
+- 标记“有无对比数据”
 
-- 将 test.t_quality_trace 表数据迁移到 master.t_quality_trace
-- 字段映射关系：
+### quality_trace_detect_testing
 
-| 旧字段 (test) | 新字段 (master) | 说明 |
-|-------------|----------------|------|
-| F_Id | id | 主键 |
-| F_OriginalId | original_id | 原始ID |
-| F_CheckOrganize | check_organize | 检测单位 |
-| F_ProjectNo | project_no | 工程编号 |
-| F_ProjectName | project_name | 工程名称 |
-| F_ProductName | product_name | 检测产品名称 |
-| F_FactoryName | factory_name | 生产厂家 |
-| F_Batch | batch | 生产批号 |
-| F_CheckProjectName | check_project_name | 检测项目名称 |
-| F_DataStatus | data_status | 数据状态 |
-| F_IsCollect | is_collect | 是否已采集 |
-| F_ConclusionMark | conclusion_mark | 结论标志 |
-| F_Conclusion | conclusion | 结论 |
-| F_ReportTime | report_time | 报告日期 |
-| F_CheckTime | check_time | 检测时间 |
-| F_EnabledMark | enabled_mark | 有效标志 |
+检测缺陷建材产品管理：
 
-审计字段映射：
+- 查询
+- 删除
+- 复检合格
+- 查看复检附件
 
-| 旧字段 (test) | 新字段 (master) | 说明 |
-|-------------|----------------|------|
-| F_CreatorUserId | create_by | 创建人 |
-| F_CreatorTime | create_time | 创建时间 |
-| F_LastModifyUserId | update_by | 更新人 |
-| F_LastModifyTime | update_time | 更新时间 |
-| F_DeleteUserId | delete_by | 删除人 |
-| F_DeleteTime | delete_time | 删除时间 |
-| F_DeleteMark | del_flag | 删除标记 |
+### quality_trace_usage
 
-### 2. 查询功能
+缺陷建材使用情况：
 
-查询条件：
-- 产品名称（对应 product_name，模糊查询）
-- 生产批号（对应 batch，模糊查询）
-- 生产厂家（对应 factory_name，模糊查询）
-- 检测项目（对应 check_project_name，模糊查询）
-- 检测日期（对应 check_time，范围查询）
-- 有无对比数据（字典，字典项：有、无）
+- 查询
+- 隐藏
+- 查看对应填报信息
+- 查看附件
 
-### 3. 列表功能
+### quality_trace_factory
 
-Table 表格字段：
-- 序号
-- 检验检测工程名称（project_name）
-- 检测项目（check_project_name）
-- 检测产品名称（product_name）
-- 生产厂家（factory_name）
-- 生产批号（batch）
-- 检测日期（check_time，格式：yyyy-MM-dd）
-- 报告日期（report_time，格式：yyyy-MM-dd）
-- 检验参数（check_project_name）
-- 结论（conclusion，字典）
-- 有无对比数据（has_check_data，字典：有、无）
-- 操作（删除按钮）
+缺陷建材厂家：
 
-### 4. 导入功能
+- 查询
+- 展示平台生产厂家与检验检测生产厂家差异
 
-导入字段对应关系：
+## Data Strategy
 
-| 导入字段 | 数据库字段 |
-|----------|-----------|
-| 项目名称 | project_name |
-| 材料名称 | product_name |
-| 生产批号 | batch |
-| 生产厂家 | factory_name |
-| 检测项目 | check_project_name |
-| 检测日期 | check_time |
-| 检测机构 | check_organize |
-| 报告日期 | report_time |
-| 不合格参数 | conclusion |
+### 1. 主库真实落地部分
 
-### 5. 删除功能
+- `master.t_quality_trace`
+  - 作为质量追溯主表继续保留
+  - 本次在提案中补齐复检相关字段设计
+- `master.t_project_product`
+  - 用于承接“缺陷建材使用情况”中的项目、产品、闭环状态、附件、监理核对时间等信息
+- `master.t_project`
+  - 用于补齐工程名称、工程进度、工程地址
+- `master.t_companyinfo`
+  - 用于补齐生产厂家名称、厂家区域等信息
 
-- 支持单条删除
-- 删除时设置 del_flag = 1
+### 2. 历史关系承接部分
 
-## 数据模型
+- `test.t_product_relation` 只存在于 `test`
+- 当前真实库中无法直接证明 `F_CheckProductId -> t_quality_trace.id/original_id`
+- 因此本次新增 `master.t_product_relation` 设计时，保留历史字段承接能力，但不在提案中虚构一条未经验证的强关系
 
-### 表结构 (master.t_quality_trace)
+### 3. 外部数据优先接入部分
 
-```sql
-CREATE TABLE master.t_quality_trace (
-    id VARCHAR(50) NOT NULL,
-    tenant_id VARCHAR(20) NOT NULL DEFAULT '000000',
-    original_id VARCHAR(50),
-    check_organize VARCHAR(200),
-    project_no VARCHAR(200),
-    project_name VARCHAR(500),
-    product_name VARCHAR(500),
-    factory_name VARCHAR(500),
-    batch VARCHAR(100),
-    check_project_name VARCHAR(800),
-    data_status VARCHAR(1),
-    is_collect VARCHAR(1),
-    conclusion_mark VARCHAR(50),
-    conclusion VARCHAR(500),
-    report_time TIMESTAMP,
-    check_time TIMESTAMP,
-    enabled_mark INTEGER,
-    create_by VARCHAR(50),
-    create_time TIMESTAMP,
-    update_by VARCHAR(50),
-    update_time TIMESTAMP,
-    delete_by VARCHAR(50),
-    delete_time TIMESTAMP,
-    del_flag INTEGER DEFAULT 0,
-    create_dept VARCHAR(50) DEFAULT '103',
-    PRIMARY KEY (id, tenant_id)
-);
-```
+以下页面数据口径先按“外部数据接口优先”设计：
 
-## 技术实现
+- 检测缺陷建材产品
+- 缺陷建材使用情况
+- 缺陷建材厂家
 
-### 后端
-- QualityTraceController: REST接口
-- QualityTraceService/IQualityTraceService: 业务逻辑
-- QualityTraceMapper: 数据访问
-- QualityTraceMapper.xml: 自定义SQL
+本次实现要求：
 
-### 前端
-- quality/spot-testing/index.vue: 抽测缺陷建材产品页面
-- quality/spot-testing.js: API调用
+- 前端页面 UI 完整可用
+- 后端提供统一分页接口与占位返回
+- 当配置了真实外部数据源后，可在不改前端契约的前提下切换数据来源
 
-### 字典配置
-- 有无对比数据：dict_code=1 有，dict_code=2 无
-- 结论：dict_code=1 合格，dict_code=2 不合格
+## SQL Assets
+
+- `sql/tables/base_t_quality_trace.sql`
+- `sql/tables/base_t_product_relation.sql`
+- `sql/indexes/idx_t_quality_trace.sql`
+- `sql/indexes/idx_t_product_relation.sql`
+- `sql/migrate/migrate_t_quality_trace.sql`
+- `sql/migrate/migrate_t_product_relation.sql`
+- `sql/menu/menu_quality_trace.sql`
+- `sql/dict/dict_quality_trace.sql`
 
 ## Impact
 
-### SQL 文件
-- sql/tables/base_t_quality_trace.sql - 建表SQL
-- sql/sequences/seq_t_quality_trace.sql - 序列
-- sql/indexes/idx_t_quality_trace.sql - 索引
-- sql/migrate/migrate_t_quality_trace.sql - 数据迁移
-- sql/menu/menu_quality_trace.sql - 菜单配置
-- sql/dict/dict_quality_trace.sql - 字典配置
+### Backend
 
-### 后端文件
-- controller/QualityTraceController.java
-- service/QualityTraceService.java
-- service/IQualityTraceService.java
-- mapper/QualityTraceMapper.java
-- mapper/xml/QualityTraceMapper.xml
+- 新增质量追溯控制器、服务、Mapper
+- 接口分为：
+  - 主库落地接口
+  - 外部数据占位接口
 
-### 前端文件
-- api/quality/spot-testing.js
-- views/quality/spot-testing/index.vue
+### Frontend
+
+- 新增 `quality` 模块下 4 个页面
+- 统一查询区、表格区、分页区与操作弹窗
+
+### Database
+
+- 修订 `t_quality_trace` 提案口径
+- 新增 `t_product_relation` 的 `master` 方案
+- 菜单、权限点、字典 SQL 全量补齐

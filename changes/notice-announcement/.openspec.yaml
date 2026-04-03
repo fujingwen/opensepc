@@ -1,0 +1,11 @@
+schema: spec-driven
+created: 2026-04-03
+updated: 2026-04-03
+description: 通知公告模块
+database:
+  schema: master
+  tables:
+    - master.msg_notice_publish
+dependencies:
+  - base-companyinfo
+  - user-role-migration

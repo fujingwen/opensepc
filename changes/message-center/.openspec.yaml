@@ -1,0 +1,13 @@
+schema: spec-driven
+created: 2026-03-28
+updated: 2026-04-03
+description: 消息中心模块
+database:
+  schema: master
+  tables:
+    - master.base_message
+    - master.base_message_receive
+    - master.base_message_template
+dependencies:
+  - base-companyinfo
+  - user-role-migration

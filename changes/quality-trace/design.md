@@ -1,214 +1,248 @@
-# 抽测缺陷建材产品 - 详细设计
+# 质量追溯模块设计
 
-## 1. 数据库设计
+## 1. 页面结构
 
-### 1.1 字段映射分析
+质量追溯模块共 4 个页面：
 
-#### test.t_quality_trace 表字段
+1. 抽测缺陷建材产品
+2. 检测缺陷建材产品
+3. 缺陷建材使用情况
+4. 缺陷建材厂家
 
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| F_Id | varchar(50) | 主键 |
-| F_OriginalId | varchar(50) | 原始ID |
-| F_CheckOrganize | varchar(200) | 检测单位 |
-| F_ProjectNo | varchar(200) | 工程编号 |
-| F_ProjectName | varchar(500) | 工程名称 |
-| F_ProductName | varchar(500) | 检验产品名称 |
-| F_FactoryName | varchar(500) | 生产单位名称 |
-| F_Batch | varchar(100) | 批号 |
-| F_CheckProjectName | varchar(800) | 检测项目名称 |
-| F_DataStatus | varchar(1) | 数据状态 |
-| F_IsCollect | varchar(1) | 是否已采集 |
-| F_ConclusionMark | varchar(50) | 结论标志 |
-| F_Conclusion | varchar(500) | 结论 |
-| F_ReportTime | timestamp | 报告日期 |
-| F_CheckTime | timestamp | 检测时间 |
-| F_EnabledMark | integer | 有效标志 |
-| F_CreatorUserId | varchar(50) | 创建用户 |
-| F_CreatorTime | timestamp | 创建时间 |
-| F_LastModifyUserId | varchar(50) | 修改用户 |
-| F_LastModifyTime | timestamp | 修改时间 |
-| F_DeleteUserId | varchar(50) | 删除用户 |
-| F_DeleteTime | timestamp | 删除时间 |
-| F_DeleteMark | integer | 删除标志 |
+左侧菜单结构：
 
-#### 字段与页面元素对应关系
-
-| 页面元素 | 数据库字段 | 说明 |
-|----------|-----------|------|
-| 产品名称 | F_ProductName | 检测产品名称 |
-| 生产批号 | F_Batch | 批号 |
-| 生产厂家 | F_FactoryName | 生产单位名称 |
-| 检测项目 | F_CheckProjectName | 检测项目名称 |
-| 检测日期 | F_CheckTime | 检测时间 |
-| 有无对比数据 | 计算字段 | 根据 t_product_relation 表关联 |
-
-#### 导入字段与数据库字段对应
-
-| 导入字段 | 数据库字段 | 说明 |
-|----------|-----------|------|
-| 项目名称 | F_ProjectName | 工程名称 |
-| 材料名称 | F_ProductName | 检验产品名称 |
-| 生产批号 | F_Batch | 批号 |
-| 生产厂家 | F_FactoryName | 生产单位名称 |
-| 检测项目 | F_CheckProjectName | 检测项目名称 |
-| 检测日期 | F_CheckTime | 检测时间 |
-| 检测机构 | F_CheckOrganize | 检测单位 |
-| 报告日期 | F_ReportTime | 报告日期 |
-| 不合格参数 | F_Conclusion | 结论 |
-
-### 1.2 迁移后 master.t_quality_trace 表结构
-
-```sql
-CREATE TABLE master.t_quality_trace (
-    id VARCHAR(50) NOT NULL,
-    tenant_id VARCHAR(20) NOT NULL DEFAULT '000000',
-    original_id VARCHAR(50),
-    check_organize VARCHAR(200),
-    project_no VARCHAR(200),
-    project_name VARCHAR(500),
-    product_name VARCHAR(500),
-    factory_name VARCHAR(500),
-    batch VARCHAR(100),
-    check_project_name VARCHAR(800),
-    data_status VARCHAR(1),
-    is_collect VARCHAR(1),
-    conclusion_mark VARCHAR(50),
-    conclusion VARCHAR(500),
-    report_time TIMESTAMP,
-    check_time TIMESTAMP,
-    enabled_mark INTEGER,
-    create_by VARCHAR(50),
-    create_time TIMESTAMP,
-    update_by VARCHAR(50),
-    update_time TIMESTAMP,
-    delete_by VARCHAR(50),
-    delete_time TIMESTAMP,
-    del_flag INTEGER DEFAULT 0,
-    create_dept VARCHAR(50) DEFAULT '103',
-    PRIMARY KEY (id, tenant_id)
-);
+```text
+质量追溯
+├── 抽测缺陷建材产品
+├── 检测缺陷建材产品
+├── 缺陷建材使用情况
+└── 缺陷建材厂家
 ```
 
-### 1.3 迁移前后字段对照表
+## 2. 数据分层
 
-| test 字段 (旧) | master 字段 (新) | 类型转换 |
-|---------------|-----------------|----------|
-| F_Id | id | 直接映射 |
-| F_OriginalId | original_id | 直接映射 |
-| F_CheckOrganize | check_organize | 直接映射 |
-| F_ProjectNo | project_no | 直接映射 |
-| F_ProjectName | project_name | 直接映射 |
-| F_ProductName | product_name | 直接映射 |
-| F_FactoryName | factory_name | 直接映射 |
-| F_Batch | batch | 直接映射 |
-| F_CheckProjectName | check_project_name | 直接映射 |
-| F_DataStatus | data_status | 直接映射 |
-| F_IsCollect | is_collect | 直接映射 |
-| F_ConclusionMark | conclusion_mark | 直接映射 |
-| F_Conclusion | conclusion | 直接映射 |
-| F_ReportTime | report_time | 直接映射 |
-| F_CheckTime | check_time | 直接映射 |
-| F_EnabledMark | enabled_mark | 直接映射 |
-| F_CreatorUserId | create_by | 重命名字段 |
-| F_CreatorTime | create_time | 重命名字段 |
-| F_LastModifyUserId | update_by | 重命名字段 |
-| F_LastModifyTime | update_time | 重命名字段 |
-| F_DeleteUserId | delete_by | 重命名字段 |
-| F_DeleteTime | delete_time | 重命名字段 |
-| F_DeleteMark | del_flag | 重命名字段，NULL转为0 |
+### 2.1 主库落地页
 
-## 2. 菜单设计
+#### 抽测缺陷建材产品
 
-### 2.1 菜单结构
+数据来源：
 
-```
-质量追溯 (zlzs)
-├── 抽测缺陷建材产品 (spotTestingProduct)
-├── 检测缺陷建材产品 (bhgcp)
-├── 缺陷建材使用情况 (bhgcpsyqk)
-└── 缺陷建材厂家 (bhgcj)
-```
+- `master.t_quality_trace`
 
-### 2.2 抽测缺陷建材产品菜单配置
+查询条件：
 
-- 菜单名称：抽测缺陷建材产品
-- 路径：quality/spot-testing
-- 组件：quality/spot-testing/index
-- 权限编码：quality:spotTesting
+- 产品名称
+- 生产批号
+- 生产厂家
 
-## 3. 字典设计
+列表字段：
 
-### 3.1 有无对比数据
+- 工程名称
+- 检测项目
+- 检验产品名称
+- 生产厂家
+- 生产批号
+- 检测日期
+- 报告日期
+- 检验参数
+- 结论
+- 有无对比数据
 
-| dict_code | dict_label |
-|-----------|------------|
-| 1 | 有 |
-| 2 | 无 |
+行为：
 
-### 3.2 结论
+- 导入
+- 删除
 
-| dict_code | dict_label |
-|-----------|------------|
-| 1 | 合格 |
-| 2 | 不合格 |
+其中“有无对比数据”先按关系表是否存在记录计算。
+
+### 2.2 外部数据优先页
+
+#### 检测缺陷建材产品
+
+页面行为：
+
+- 查询
+- 删除
+- 复检合格
+
+弹窗字段：
+
+- 备注，必填
+- 附件，必填
+
+数据策略：
+
+- 优先走外部数据接口
+- 若未接入外部数据，则返回占位分页数据
+
+为了兼容未来落库，`t_quality_trace` 预留以下字段：
+
+- `recheck_status`
+- `recheck_remark`
+- `recheck_attachment`
+- `recheck_time`
+- `recheck_by`
+
+#### 缺陷建材使用情况
+
+页面字段：
+
+- 工程名称
+- 工程进度
+- 工程地址
+- 产品名称
+- 生产批号
+- 生产厂家
+- 检验检测生产厂家
+- 是否复检合格
+- 是否闭环
+- 类别
+- 核对时间
+
+操作：
+
+- 隐藏
+- 对应填报的信息
+- 附件
+
+数据策略：
+
+- 优先走外部数据接口
+- 若后续切回主库统计，可基于 `t_project_product + t_project + t_companyinfo + t_product_relation`
+
+闭环相关字段优先复用：
+
+- `t_project_product.is_pass_by_request`
+- `t_project_product.jl_unit`
+- `t_project_product.pass_reason`
+- `t_project_product.jl_unit_check_time`
+- `t_project_product.file_url`
+
+#### 缺陷建材厂家
+
+页面字段：
+
+- 建材平台生产厂家
+- 检验检测生产厂家
+- 产品名称
+- 生产批号
+- 检测项目
+- 检测日期
+
+数据策略：
+
+- 优先走外部数据接口
+- 若后续切回主库统计，可基于“缺陷建材使用情况”做厂家维度聚合
+
+## 3. 表设计
+
+### 3.1 master.t_quality_trace
+
+当前真实字段：
+
+- `id`
+- `original_id`
+- `check_organize`
+- `project_no`
+- `project_name`
+- `product_name`
+- `factory_name`
+- `batch_no`
+- `check_project_name`
+- `data_status`
+- `is_collect`
+- `conclusion_mark`
+- `conclusion`
+- `report_time`
+- `check_time`
+- `enabled_mark`
+- 审计字段
+
+本次提案补充字段：
+
+- `recheck_status integer default 0`
+- `recheck_remark varchar(1000)`
+- `recheck_attachment varchar(500)`
+- `recheck_time timestamp`
+- `recheck_by varchar(50)`
+
+### 3.2 master.t_product_relation
+
+设计目的：
+
+- 承接 `test.t_product_relation`
+- 记录产品与缺陷追溯记录的关系
+- 承接“隐藏”状态
+
+建议字段：
+
+- `id varchar(50)`
+- `tenant_id varchar(50) default '000000'`
+- `product_id varchar(50)`
+- `legacy_check_product_id varchar(50)`
+- `quality_trace_id varchar(50)`
+- `status integer default 1`
+- `hidden_flag integer default 0`
+- `hidden_by varchar(50)`
+- `hidden_time timestamp`
+- `create_by`
+- `create_time`
+- `update_by`
+- `update_time`
+- `del_flag`
+- `create_dept`
+
+说明：
+
+- `legacy_check_product_id` 用于保留 `test` 历史值
+- `quality_trace_id` 用于未来补齐与 `master.t_quality_trace` 的真实关联
+- 本提案不把两者强行等同
 
 ## 4. 接口设计
 
-### 4.1 查询接口
+统一前缀：
 
-GET /api/quality/spot-testing/list
+- `/materials/qualityTrace`
 
-请求参数：
-- productName: 产品名称（模糊查询）
-- batch: 生产批号（模糊查询）
-- factoryName: 生产厂家（模糊查询）
-- checkProject: 检测项目（模糊查询）
-- beginCheckTime: 检测开始日期
-- endCheckTime: 检测结束日期
-- hasCheckData: 有无对比数据（1-有，2-无）
-- pageNum: 页码
-- pageSize: 每页条数
+### 4.1 抽测缺陷建材产品
 
-响应数据：
-```json
-{
-  "rows": [
-    {
-      "id": "xxx",
-      "projectName": "工程名称",
-      "productName": "产品名称",
-      "batch": "批号",
-      "factoryName": "生产厂家",
-      "checkProject": "检测项目",
-      "checkTime": 1763136000000,
-      "reportTime": 1763136000000,
-      "conclusion": "结论",
-      "hasCheckData": "有/无"
-    }
-  ],
-  "total": 100
-}
-```
+- `GET /spot/page`
+- `POST /spot/import`
+- `DELETE /spot/{ids}`
 
-### 4.2 删除接口
+### 4.2 检测缺陷建材产品
 
-DELETE /api/quality/spot-testing/{id}
+- `GET /detect/page`
+- `DELETE /detect/{ids}`
+- `POST /detect/recheck`
 
-### 4.3 导入接口
+### 4.3 缺陷建材使用情况
 
-POST /api/quality/spot-testing/import
+- `GET /usage/page`
+- `POST /usage/hide`
+
+### 4.4 缺陷建材厂家
+
+- `GET /factory/page`
 
 ## 5. 前端设计
 
-### 5.1 页面布局
+统一遵循现有后台风格：
 
-- 查询区域：6个查询条件 + 查询按钮 + 重置按钮
-- 表格区域：11列 + 操作列
-- 导入按钮
+- 顶部查询区
+- 中部工具栏
+- 底部表格 + 分页
 
-### 5.2 组件交互
+### 5.1 外部数据占位约定
 
-- 查询：触发列表刷新
-- 删除：弹出确认框，确认后执行删除
-- 导入：弹出导入对话框，解析Excel并上传
+对于外部数据优先页面，接口即使暂未接入真实外部源，也必须返回：
+
+```json
+{
+  "rows": [],
+  "total": 0,
+  "source": "external-placeholder"
+}
+```
+
+这样前端无需额外分支即可先完成 UI 联调。
