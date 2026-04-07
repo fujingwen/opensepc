@@ -17,20 +17,27 @@
 ## 3. 后端实现
 
 - [x] 3.1 创建 dashboard controller / service / mapper / vo
-- [x] 3.2 实现汇总卡片、指标、榜单聚合
-- [x] 3.3 实现区市地图与图表聚合查询
-- [x] 3.4 完成权限注解与接口输出
+- [x] 3.2 实现汇总卡片、审核指标、区市统计、类型趋势、滚动榜单查询
+- [x] 3.3 实现拆分接口
+  - `/materials/dashboard/summary`
+  - `/materials/dashboard/rates`
+  - `/materials/dashboard/regions`
+  - `/materials/dashboard/types`
+  - `/materials/dashboard/lists`
+- [x] 3.4 优化 `regions` 聚合 SQL，解决区市统计超时问题
+- [x] 3.5 删除废弃综合接口
 
 ## 4. 前端实现
 
-- [x] 4.1 安装 L7 依赖
-- [x] 4.2 新建数据大屏 API
-- [x] 4.3 实现大屏页面布局、图表与滚动榜单
-- [x] 4.4 使用本地青岛 GeoJSON 接入 L7 地图
+- [x] 4.1 安装并接入 L7 依赖
+- [x] 4.2 新建数据大屏 API，并删除废弃的 `overview` API 包装
+- [x] 4.3 实现大屏页面布局、图表、3D 地图、悬浮弹窗与滚动榜单
+- [x] 4.4 菜单点击时以独立页面打开大屏
+- [x] 4.5 页面改为 `Promise.allSettled` 并行加载并支持模块级降级
 
 ## 5. 验证
 
 - [x] 5.1 编译 `hny-materials`
-- [x] 5.2 构建前端
-- [x] 5.3 校验 OpenSpec
-- [x] 5.4 回写任务状态与风险
+- [x] 5.2 校验 OpenSpec
+- [ ] 5.3 前端构建复核
+  - 当前未执行；用户要求不要运行前端

@@ -1,51 +1,40 @@
+# 数据大屏变更提案
+
 ## Why
 
-当前仓库已经补齐了统计中心的基础查询口径，但“数据大屏”仍然缺位，现网原型中的几个关键展示还没有承载：
+当前仓库中的数据大屏已经稳定采用拆分接口加载，但提案和部分分析文档里仍残留旧的综合接口描述。继续保留这条已经废弃的接口定义，会带来三类问题：
 
-- 项目总量、填报量、备案量、企业量等汇总卡片
-- 信息确认率 / 审核通过率环形指标
-- 各区市项目分布地图
-- 各区市建材产品填报数量、产品类别数量、月度趋势图
-- 最近填报审核列表、缺陷建材滚动列表
+- 文档与实现不一致
+- 后端维护两套无必要的输出结构
+- 前端 API 层出现无用导出，增加理解成本
 
-在核对数据库后，现状是：
-
-- `master.t_project_product` 已经是建材填报主链
-- `master.t_record_product` 已承载备案产品
-- `master.base_region` / `master.base_dictionarytype` 可以支撑区市与产品类别口径
-- `master.t_project` 与 `master.t_quality_trace` 还没有落到运行库，需要先迁移
-
-如果继续只做页面而不先补齐运行表，数据大屏会落到 `test.*` 表或错误链路上，后续统计中心、质量追溯和大屏会出现口径分裂。因此需要新增一个独立 OpenSpec 变更，把数据大屏和它依赖的运行库迁移一起完成。
+因此本轮变更目标是彻底移除历史综合接口，让前后端与 OpenSpec 都只保留当前真实使用的拆分接口结构。
 
 ## What Changes
 
-- 新建 `data-screen` 变更
-- 新增 `数据大屏` 菜单与访问权限
-- 新增数据大屏只读聚合接口
-  - 汇总卡片
-  - 信息确认率 / 审核通过率
-  - 各区市项目总数 / 参与项目数
-  - 各区市建材填报数量
-  - 各产品类别填报数量
-  - 各产品类别近 12 个月趋势
-  - 最近项目填报审核列表
-  - 最近缺陷建材列表
-- 新增 `master.t_project` 运行表建表与 `test.t_project -> master.t_project` 迁移 SQL
-- 新增 `master.t_quality_trace` 运行表建表与 `test.t_quality_trace -> master.t_quality_trace` 迁移 SQL
-- 新增前端数据大屏页面，地图使用 L7，并内置青岛 GeoJSON 边界数据
+- 删除后端历史综合接口
+- 删除后端历史总览 VO 与相关服务聚合方法
+- 删除前端历史综合 API 包装
+- 保留并继续使用以下拆分接口：
+  - `GET /materials/dashboard/summary`
+  - `GET /materials/dashboard/rates`
+  - `GET /materials/dashboard/regions`
+  - `GET /materials/dashboard/types`
+  - `GET /materials/dashboard/lists`
+- 同步更新 OpenSpec 提案、设计、规格、任务和问题记录
 
 ## Capabilities
 
 ### New Capabilities
 
 - `data_screen`
-  - 以 `master.t_project_product` 为核心口径展示项目建材填报总览
-  - 以 `master.t_project` 为项目维度补齐区市地图和项目总量
-  - 以 `master.t_quality_trace` 展示最新缺陷建材榜单
+  - 基于 `master.*` 运行库提供建材数据大屏
+  - 采用拆分接口并行加载
+  - 支持模块级失败降级
 
 ### Capability Details
 
-#### 1. 汇总卡片与指标
+#### 1. 汇总卡片与审核指标
 
 - 页面入口
   - `数据大屏 / 建材数据大屏`
@@ -55,28 +44,29 @@
   - 备案产品总数
   - 施工企业数
   - 生产单位数
-- 环形指标
+- 审核指标
   - 信息确认率
   - 审核通过率
 
-#### 2. 区市地图与图表
+#### 2. 区市地图与统计图表
 
 - 地图
-  - 使用 L7 渲染青岛市区县边界
-  - 展示各区市项目总数与参与项目数
+  - 使用 L7 渲染青岛区市边界
+  - 显示各区市项目总数、参与项目总数、建材填报数
+  - 支持 3D 挤出、悬浮弹窗和标签偏移
 - 图表
   - 各区市建材产品填报数量
   - 各产品类别填报数量
-  - 各产品类别近 12 个月填报趋势
+  - 各产品类别每月提报数量
 
 #### 3. 滚动榜单
 
-- 最近项目填报审核列表
+- 最近项目填报审核
   - 项目名称
   - 填报材料
   - 备案证号
   - 审核状态
-- 最近缺陷建材列表
+- 最新缺陷建材产品
   - 缺陷建材产品
   - 批号
   - 生产厂家
@@ -85,26 +75,15 @@
 ## Impact
 
 - OpenSpec
-  - `openspec/changes/data-screen/.openspec.yaml`
   - `openspec/changes/data-screen/proposal.md`
   - `openspec/changes/data-screen/design.md`
   - `openspec/changes/data-screen/tasks.md`
+  - `openspec/changes/data-screen/issues.md`
   - `openspec/changes/data-screen/specs/data_screen/spec.md`
-- SQL
-  - `openspec/changes/data-screen/sql/menu/base_menu.sql`
-  - `openspec/changes/data-screen/sql/tables/base_t_project.sql`
-  - `openspec/changes/data-screen/sql/migrate/migrate_t_project.sql`
-  - `openspec/changes/data-screen/sql/tables/base_t_quality_trace.sql`
-  - `openspec/changes/data-screen/sql/migrate/migrate_t_quality_trace.sql`
 - Backend
-  - `MatDashboardController`
-  - `IMatDashboardService`
-  - `MatDashboardServiceImpl`
-  - `MatDashboardMapper`
-  - `MatDashboardMapper.xml`
-  - 相关 dashboard vo
+  - `construction-material-backend/hny-modules/hny-materials/src/main/java/com/hny/materials/controller/MatDashboardController.java`
+  - `construction-material-backend/hny-modules/hny-materials/src/main/java/com/hny/materials/service/IMatDashboardService.java`
+  - `construction-material-backend/hny-modules/hny-materials/src/main/java/com/hny/materials/service/impl/MatDashboardServiceImpl.java`
 - Frontend
   - `construction-material-web/src/api/dashboard/materials.js`
   - `construction-material-web/src/views/dashboard/materials/index.vue`
-  - `construction-material-web/src/assets/geo/qingdao.json`
-  - `construction-material-web/package.json`
