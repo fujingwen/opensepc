@@ -30,6 +30,24 @@
 - **Then** 系统应将业务字段写入 `master.t_project`
 - **Then** 系统应补齐 `tenant_id`、`create_dept`、`del_flag`
 
+### Requirement: 工程项目列表必须展示业务标签而不是原始ID
+
+系统 SHALL 将工程项目列表和详情中的字典字段、关联字段解析为业务标签或名称，不得直接展示原始 ID。
+
+#### Scenario: 展示工程进度与质量监督机构
+
+- **Given** `master.t_project.project_progress`、`quality_supervision_agency` 中仍存在历史字典 ID
+- **When** 用户查看工程项目列表或详情
+- **Then** 系统应先完成旧字典 ID 到当前标签的映射
+- **And** 页面不得直接显示类似 `650118400` 的原始值
+
+#### Scenario: 展示施工单位与填报类字段
+
+- **Given** 工程项目记录包含 `construction_unit`、`has_report`、`is_integrated`
+- **When** 页面渲染列表或详情
+- **Then** `construction_unit` 应显示关联后的施工单位名称
+- **And** `has_report`、`is_integrated` 应显示对应字典标签
+
 ### `master.t_project` 字段定义
 
 | # | 字段名 | 类型 | 含义 | 前端标签 | 字典/备注 |

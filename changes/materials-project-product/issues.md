@@ -13,6 +13,11 @@
 5. ~~“生产批号 / 生产日期至少填写一项”已补齐前后端校验。~~
 6. ~~建材产品导出已补齐 2000 条上限控制。~~
 7. ~~操作手册中与编辑删除、无备案证号录入、批号/生产日期校验、导出上限相关的既有差异已完成闭环。~~
+8. ~~工程项目列表中的工程进度、施工单位、质量监督机构、有无填报、对接一体化平台编码已改为展示业务标签或关联名称，不再直出原始 ID。~~
+9. ~~审核已改为复用查看弹窗，审核态字段全部禁用，右上角提供“审核通过 / 审核不通过”，不通过时再弹出原因填写弹窗。~~
+10. ~~信息确认状态 hover 已改为按代理商/生产单位分组展示，并将不通过类别与原因挂在对应企业块下。~~
+11. ~~备案证号缺失时已统一显示 `/`；有无备案证号字段 `0` 已按“无”展示。~~
+12. ~~前端已兼容信息确认不通过类别同时解析 `sys_dict(shbtgyylb)` 与历史 `base_dictionarydata.id`。~~
 
 ## 未完成问题
 
@@ -30,3 +35,6 @@
 4. `master.t_project_product.batch_no` 与 `batch_date` 同时为空的历史记录有 2 条。
 5. `master.t_project_product.supplier_check_status` 已存在且被历史数据使用。
 6. `master.sys_dict_data` 中 `info_confirm_unit_type` 已存在。
+7. 新库 `sys_dict_data` 中 `shbtgyylb` 曾漂移为 `info_confirm_fail_type`，已按旧库校正回 `shbtgyylb`。
+8. 新库 `info_confirm_unit_type` 曾缺少明细数据，已按旧库补齐 `1=生产单位`、`2=监理单位`。
+9. `master.t_project_product.check_first_fail_reason` 与 `supplier_check_first_fail_reason` 历史上存在直接保存 `base_dictionarydata.id` 的记录，例如 `305848955927790853=其他`。

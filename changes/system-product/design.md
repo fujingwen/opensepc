@@ -55,6 +55,7 @@
 - 使用树形表格展示（通过 children 字段连接子节点）
 - 支持名称和状态查询
 - 支持展开/收起全部
+- 服务端查询需兼容历史脏数据：优先按 `tree_path` 命中类别，同时允许按 `category_id` 兜底返回记录
 
 **查询条件**：
 
@@ -144,6 +145,12 @@ sys_product 表存储三种类型的数据：
 
 **category_id 规则**：所有属于同一顶级类别的数据，category_id 应指向该顶级类别的 id。
 
+### 3.4 历史数据兼容现状
+
+- 已核对旧库与新库 `master.sys_product` 记录数一致，不存在需要把旧库整表同步到新库的情况
+- 实际历史数据中，部分类别没有规范的一层 `product` 节点，部分记录只有 `category_id` 正确而 `tree_path` 不完整
+- 因此“按类别加载产品名称/规格”不能只依赖理想树结构，必须同时兼容 `tree_path` 与 `category_id`
+
 ## 4. API 设计
 
 ### 4.1 产品类别列表（左侧类别树）
@@ -192,6 +199,12 @@ GET /system/product/list/{categoryId}
 |------|------|------|
 | fullName | String | 名称（模糊查询） |
 | enabledMark | Integer | 状态（精确匹配） |
+
+服务端过滤补充规则：
+
+- 先按 `tree_path` 命中当前 `categoryId`
+- 若历史数据未正确挂入 `tree_path`，则按 `category_id = categoryId` 兜底
+- 不能因为缺少标准第一层 `product` 节点而返回空列表
 
 响应：
 
@@ -250,13 +263,13 @@ POST /system/product/category
 ### 4.4 修改产品类别
 
 ```
-PUT /system/product/category
+PUT /system/product
 ```
 
 ### 4.5 删除产品类别
 
 ```
-DELETE /system/product/category/{id}
+DELETE /system/product/{id}
 ```
 
 ### 4.6 新增产品
@@ -356,7 +369,7 @@ DELETE /system/product/{id}
 
 ## 7. 菜单设计
 
-使用现有的"产品管理"菜单，组件路径改为 `system/product/index1`
+使用现有的"产品管理"菜单，组件路径为 `system/product/index`
 
 ## 8. 状态字典
 

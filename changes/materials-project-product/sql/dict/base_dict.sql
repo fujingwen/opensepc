@@ -84,20 +84,33 @@ VALUES
   (707, '000000', 2, '否', '2', 'info_confirm_timeout', '', 'success', 'N', 103, now(), '');
 
 -- 信息确认不通过类别
+-- 注意：运行时字典类型以 shbtgyylb 为准；
+-- t_project_product 历史业务数据中仍可能直接保存旧 base_dictionarydata.id，前端展示需兼容两种口径。
 INSERT INTO "master"."sys_dict_type" (dict_id, tenant_id, dict_name, dict_type, create_by, create_time, remark)
 VALUES
-  (303, '000000', '信息确认不通过类别', 'info_confirm_fail_type', 103, now(), '建材填报管理-建材产品-信息确认不通过类别')
+  (303, '000000', '信息确认不通过类别', 'shbtgyylb', 103, now(), '建材填报管理-建材产品-信息确认不通过类别')
 ON CONFLICT (dict_id) DO NOTHING;
 
 INSERT INTO "master"."sys_dict_data" (dict_code, tenant_id, dict_sort, dict_label, dict_value, dict_type, css_class, list_class, is_default, create_by, create_time, remark)
 VALUES
-  (708, '000000', 1, '资料不全（不符）', '1', 'info_confirm_fail_type', '', '', 'N', 103, now(), ''),
-  (709, '000000', 2, '疑似假冒', '2', 'info_confirm_fail_type', '', '', 'N', 103, now(), ''),
-  (710, '000000', 3, '采购数量不符', '3', 'info_confirm_fail_type', '', '', 'N', 103, now(), ''),
-  (711, '000000', 4, '品牌填写错误', '4', 'info_confirm_fail_type', '', '', 'N', 103, now(), ''),
-  (712, '000000', 5, '填报规格与实际供货规格不符', '5', 'info_confirm_fail_type', '', '', 'N', 103, now(), ''),
-  (713, '000000', 6, '图片清晰度不够，无法辨识', '6', 'info_confirm_fail_type', '', '', 'N', 103, now(), ''),
-  (714, '000000', 7, '其他', '7', 'info_confirm_fail_type', '', '', 'N', 103, now(), '');
+  (708, '000000', 1, '资料不全（不符）', '1', 'shbtgyylb', '', '', 'N', 103, now(), ''),
+  (709, '000000', 2, '疑似假冒', '2', 'shbtgyylb', '', '', 'N', 103, now(), ''),
+  (710, '000000', 3, '采购数量不符', '3', 'shbtgyylb', '', '', 'N', 103, now(), ''),
+  (711, '000000', 4, '品牌填写错误', '4', 'shbtgyylb', '', '', 'N', 103, now(), ''),
+  (712, '000000', 5, '填报规格与实际供货规格不符', '5', 'shbtgyylb', '', '', 'N', 103, now(), ''),
+  (713, '000000', 6, '图片清晰度不够，无法辨识', '6', 'shbtgyylb', '', '', 'N', 103, now(), ''),
+  (714, '000000', 7, '其他', '7', 'shbtgyylb', '', '', 'N', 103, now(), '');
+
+-- 信息确认单位
+INSERT INTO "master"."sys_dict_type" (dict_id, tenant_id, dict_name, dict_type, create_by, create_time, remark)
+VALUES
+  (306, '000000', '信息确认单位', 'info_confirm_unit_type', 103, now(), '建材填报管理-建材产品-信息确认单位')
+ON CONFLICT (dict_id) DO NOTHING;
+
+INSERT INTO "master"."sys_dict_data" (dict_code, tenant_id, dict_sort, dict_label, dict_value, dict_type, css_class, list_class, is_default, create_by, create_time, remark)
+VALUES
+  (720, '000000', 1, '生产单位', '1', 'info_confirm_unit_type', '', '', 'N', 103, now(), ''),
+  (721, '000000', 2, '监理单位', '2', 'info_confirm_unit_type', '', '', 'N', 103, now(), '');
 
 -- 有无备案证号
 INSERT INTO "master"."sys_dict_type" (dict_id, tenant_id, dict_name, dict_type, create_by, create_time, remark)

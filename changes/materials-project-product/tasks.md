@@ -1,12 +1,12 @@
 ## 1. OpenSpec 变更
 
-- [x] 1.1 创建 `materials-project-product-callback` 变更目录
+- [x] 1.1 创建 `materials-project-product` 变更目录
 - [x] 1.2 编写 `proposal.md`
 - [x] 1.3 编写 `design.md`
 - [x] 1.4 编写三个 `spec` 文件
 - [x] 1.5 编写 SQL 草案
 - [x] 1.6 整合 `materials-project` 和 `materials-product` 提案（SQL、spec、issues 合并到本提案）
-- [ ] 1.7 运行 `openspec validate materials-project-product-callback`
+- [ ] 1.7 运行 `openspec validate materials-project-product`
 
 ## 2. 第一阶段：工程项目回调
 
@@ -85,6 +85,16 @@
 - [ ] 3.5.5 有代理商和生产企业时的确认流程逻辑
 - [ ] 3.5.6 移除批量删除按钮（仅保留单个删除）
 
+## 3.6 本次会话补充完成项
+
+- [x] 3.6.1 工程项目列表中的工程进度、施工单位、质量监督机构、有无填报、对接一体化平台编码改为展示业务标签或关联名称
+- [x] 3.6.2 审核复用查看弹窗，审核态字段全部禁用，右上角提供“审核通过 / 审核不通过”
+- [x] 3.6.3 信息确认状态 hover 按代理商/生产单位分组展示，不通过类别与原因挂在对应企业块下
+- [x] 3.6.4 备案证号缺失显示 `/`，有无备案证号 `0` 显示“无”
+- [x] 3.6.5 前端兼容信息确认不通过类别同时解析 `sys_dict(shbtgyylb)` 与历史 `base_dictionarydata.id`
+- [x] 3.6.6 新库 `shbtgyylb` 字典漂移与 `info_confirm_unit_type` 缺项已按旧库补齐
+- [x] 3.6.7 已将可重复执行的字典修复 SQL 回写到 `sql/migrate/sync_runtime_dicts.sql`
+
 ## 4. 第二阶段：质量追溯准备
 
 - [ ] 4.1 基于回调后的项目/产品主链路重新整理质量追溯四页设计
@@ -96,6 +106,6 @@
 
 ## 5. 验证
 
-- [ ] 5.1 运行 `openspec validate materials-project-product-callback`
+- [ ] 5.1 运行 `openspec validate materials-project-product`
 - [ ] 5.2 编译验证材料模块
 - [ ] 5.3 更新 `issues.md`

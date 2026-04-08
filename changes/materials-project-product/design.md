@@ -122,6 +122,8 @@
   - 工程进度
   - 质量监督机构
   - 施工单位等
+- 列表与详情中的 `project_progress`、`quality_supervision_agency`、`has_report`、`is_integrated` 等字段必须展示业务标签，不得直接输出历史字典 ID
+- `construction_unit` 必须展示关联后的施工单位名称，不得回显原始 ID
 
 ### 2. 建材产品页
 
@@ -131,6 +133,8 @@
   - 项目名称、施工单位、工程进度
   - 产品名称、规格、厂家、批号
   - 信息确认状态等
+- 审核态复用详情弹窗布局，所有表单控件只读，审核操作入口位于弹窗右上角
+- 信息确认状态 hover 内容按代理商/生产单位分组展示企业、联系人、电话与失败信息
 
 ## SQL Design
 
@@ -142,6 +146,7 @@
 4. `sql/indexes/base_indexes.sql`
 5. `sql/menu/base_menu.sql`
 6. `sql/migrate/migrate_t_project_product.sql`
+7. `sql/migrate/sync_runtime_dicts.sql`
 
 ### 2. `master.t_project`
 
@@ -171,6 +176,7 @@
 
 - `openspec/changes/materials-project/sql/migrate/migrate_t_project.sql` 负责项目表迁移
 - `sql/migrate/migrate_t_project_product.sql` 负责产品表迁移
+- `sql/migrate/sync_runtime_dicts.sql` 负责修正 `shbtgyylb` 字典漂移并回填 `info_confirm_unit_type`
 - 本提案已删除过期的 `t_project` 重复 SQL 文件，后续不得再从本目录执行项目表建表/迁移脚本
 
 ## Frontend Design Details
@@ -185,8 +191,8 @@
 | 代理商名称 | 必显示，空显示"无" | 关联 `t_companyinfo` 通过 `supplier_id` |
 | 生产单位地址 | **隐藏** | - |
 | 监理申请 | 字典：是/否 | `is_pass_by_request` |
-| 备案证号 | 显示 | `record_no` |
-| 有无备案证号 | 字典 | `has_record_no` |
+| 备案证号 | 缺失时显示 `/` | `record_no` |
+| 有无备案证号 | 字典，`0` 显示“无” | `has_record_no` |
 | 信息确认状态 | 字典，固定在右侧 | `check_status` |
 
 ### 2. 查询条件联动设计
@@ -194,7 +200,7 @@
 产品类别、产品名称、产品规格三级联动：
 
 - **产品类别**：`system_product` 表，`node_type=category`，树状结构查询，返回所有子集
-- **产品名称**：选中产品类别后，返回该类别下的第一层级节点
+- **产品名称**：选中产品类别后，返回该类别下的第一层级节点；后端需兼容历史 `sys_product` 中 `tree_path` 不完整但 `category_id` 仍正确的记录
 - **产品规格**：选中产品名称后，返回该节点下的剩余层级
 
 新增查询条件：
@@ -213,6 +219,8 @@
 
 #### 3.2 产品类别/名称/规格联动
 与查询条件逻辑相同
+
+- 联动查询由 `system-product` 变更提供，服务端查询需同时兼容 `tree_path` 命中类别和 `category_id = categoryId` 两种历史数据口径
 
 #### 3.3 字段位置调整
 - 单位字段和产品规格字段互换位置
@@ -257,6 +265,19 @@
 2. `supplier_id` 对应代理商必须满足 `t_companyinfo.parent_id = manufacturer_id`
 3. 不允许仅依赖前端下拉约束代理商与生产单位关系
 
+#### 4.2.1 审核交互补充
+
+- “查看”和“审核”共用同一详情弹窗
+- 审核态下所有字段禁用，只允许在右上角执行“审核通过 / 审核不通过”
+- 点击“审核不通过”后，弹出次级弹窗选择不通过类别并填写不通过原因
+
+#### 4.2.2 状态悬浮提示补充
+
+- hover 内容按代理商、生产单位两个企业块分组展示
+- 公司、联系人、电话三个展示字段固定宽度、左对齐、超出换行
+- 某一方审核不通过时，不通过类别与原因展示在该企业块内部，不与该企业信息再加分隔线
+- 仅不同企业块之间保留分隔线
+
 #### 4.3 按钮调整
 - 移除批量删除按钮
 - 保留单个删除按钮
@@ -270,8 +291,14 @@
 | 有无备案证号 | `has_record_no` | integer |
 | 信息确认状态 | `check_status` | integer |
 | 监理申请 | `is_pass_by_request` | integer |
+| 信息确认单位 | `info_confirm_unit` | integer |
+| 信息确认不通过类别 | `check_first_fail_reason` / `supplier_check_first_fail_reason` | varchar |
 
-如字典缺失，需在 `base_dict.sql` 中新增对应字典数据。
+已确认的补充事实：
+
+- 新库 `info_confirm_unit_type` 曾缺少明细数据，需按旧库补齐 `1=生产单位`、`2=监理单位`
+- 新库 `shbtgyylb` 曾存在 `sys_dict_type` 与 `sys_dict_data.dict_type` 不一致的问题，需按旧库修正
+- `t_project_product.check_first_fail_reason` 与供应商对应字段存在历史值直接保存 `base_dictionarydata.id` 的情况，前端展示必须同时兼容 `sys_dict_data.dict_value` 和历史字典 ID
 
 ## Risks / Trade-offs
 

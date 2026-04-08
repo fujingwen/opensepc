@@ -18,7 +18,7 @@
 
 ## What Changes
 
-- 新建 `materials-project-product-callback` 变更。
+- 新建 `materials-project-product` 变更。
 - 第一阶段：工程项目主链路回调。
   - 在 `master` schema 建立 `t_project`。
   - 将 `test.t_project` 迁移到 `master.t_project`。
@@ -74,14 +74,16 @@
 基于 issues.md 中梳理的15个问题，本次变更需同步完成以下前端改造：
 
 - **Table 表格改造**：进场时间精确到年月日、增加生产单位名称和代理商名称字段、隐藏生产单位地址、字典字段规范化显示、代理商名称空值处理、信息确认状态固定右侧
+- **工程项目列表显示修正**：工程进度、施工单位、质量监督机构、有无填报、是否对接一体化平台编码等字段统一按字典标签或关联名称展示，不再直接展示原始 ID 或空值
 - **查询条件联动**：产品类别/产品名称/产品规格三级 Select 联动查询、产品类别基于 `system_product` 树状结构、新增生产单位名称模糊查询、新增采购数量范围查询、新增信息确认单位下拉
 - **新增/编辑表单**：工程名称查询优化（不限数量）、选择后自动带出施工单位名称和施工许可证、产品图片上传限制调整、进场时间限制、输入框提示文字完善
+- **审核交互与状态提示**：审核复用“查看”弹窗，审核态字段全部 disabled，右上角提供“审核通过 / 审核不通过”按钮；点击“审核不通过”后再弹出二次原因填写弹窗；信息确认状态 hover 内容按代理商/生产企业分组展示公司、联系人、电话，并将不通过类别与原因展示在对应企业块下方
 - **业务逻辑**：确认流程细化为
   - 有代理商时：代理商先确认，代理商通过后再由生产单位确认，双方都通过后状态才为“已确认”
   - 无代理商时：直接由生产单位确认，生产单位通过后状态直接为“已确认”
   - 后端需强校验所选代理商必须隶属于所选生产单位
   - 默认待信息确认状态、移除批量删除按钮
-- **字典数据**：确认"有无备案证号"、"信息确认状态"、"监理申请"字段值与字典对照
+- **字典数据与历史兼容**：确认"有无备案证号"、"信息确认状态"、"监理申请"、"信息确认单位"、"信息确认不通过类别"字段值与字典对照；备案证号缺失时展示 `/`，`has_record_no=0` 展示“无”；信息确认不通过类别需同时兼容当前 `sys_dict(shbtgyylb)` 和历史 `base_dictionarydata.id`
 
 #### 3. 质量追溯前置条件
 
@@ -100,27 +102,28 @@
 
 对照《青岛市建设工程材料信息管理平台操作手册》，当前建材产品实现与手册还存在以下差异：
 
-- 手册要求未审核记录可编辑、删除；当前实现仅允许首轮“不通过”后编辑/删除。
-- 手册允许“无备案证号”场景继续保存并改为按生产单位录入；当前后端仍把 `recordNo` 作为新增必填项。
-- 手册要求“生产批号 / 生产日期”至少填写一项；当前未形成明确校验。
-- 手册要求导出最多 2000 条；当前提案和实现都未约束导出上限。
+- 本次已闭环：未审核记录可在“待确认 / 不通过 / 待再次确认”状态下编辑删除；“无备案证号”可继续保存；“生产批号 / 生产日期至少填写一项”已补齐校验；导出已补齐 2000 条上限控制。
+- 本次补充：审核改为在查看弹窗内完成，不通过时再弹出原因填写弹窗。
+- 本次补充：信息确认状态 hover 按代理商/生产企业分组展示，不通过类别与原因挂在对应企业块下方。
+- 本次补充：备案证号缺失显示 `/`；信息确认不通过类别展示需兼容历史 `base_dictionarydata.id`。
 
 ## Impact
 
 - OpenSpec
-  - `openspec/changes/materials-project-product-callback/.openspec.yaml`
-  - `openspec/changes/materials-project-product-callback/proposal.md`
-  - `openspec/changes/materials-project-product-callback/design.md`
-  - `openspec/changes/materials-project-product-callback/tasks.md`
-  - `openspec/changes/materials-project-product-callback/issues.md`
-  - `openspec/changes/materials-project-product-callback/specs/materials_project_callback/spec.md`
-  - `openspec/changes/materials-project-product-callback/specs/materials_product_callback/spec.md`
-  - `openspec/changes/materials-project-product-callback/specs/quality_trace_dependency_gate/spec.md`
+  - `openspec/changes/materials-project-product/.openspec.yaml`
+  - `openspec/changes/materials-project-product/proposal.md`
+  - `openspec/changes/materials-project-product/design.md`
+  - `openspec/changes/materials-project-product/tasks.md`
+  - `openspec/changes/materials-project-product/issues.md`
+  - `openspec/changes/materials-project-product/specs/materials_project_callback/spec.md`
+  - `openspec/changes/materials-project-product/specs/materials_product_callback/spec.md`
+  - `openspec/changes/materials-project-product/specs/quality_trace_dependency_gate/spec.md`
 - SQL
-  - `openspec/changes/materials-project-product-callback/sql/indexes/base_indexes.sql`
-  - `openspec/changes/materials-project-product-callback/sql/menu/base_menu.sql`
-  - `openspec/changes/materials-project-product-callback/sql/tables/create_t_project_product.sql`
-  - `openspec/changes/materials-project-product-callback/sql/migrate/migrate_t_project_product.sql`
+  - `openspec/changes/materials-project-product/sql/indexes/base_indexes.sql`
+  - `openspec/changes/materials-project-product/sql/menu/base_menu.sql`
+  - `openspec/changes/materials-project-product/sql/tables/create_t_project_product.sql`
+  - `openspec/changes/materials-project-product/sql/migrate/migrate_t_project_product.sql`
+  - `openspec/changes/materials-project-product/sql/migrate/sync_runtime_dicts.sql`
   - `openspec/changes/materials-project/sql/tables/base_t_project.sql`
   - `openspec/changes/materials-project/sql/migrate/migrate_t_project.sql`
 - Backend

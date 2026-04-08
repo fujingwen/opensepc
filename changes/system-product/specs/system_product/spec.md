@@ -25,6 +25,13 @@
 - **AND** 以树形表格形式展示
 - **AND** 包含序号、名称、编码、排序、状态列
 
+#### Scenario: 历史 tree_path 不完整时仍可加载产品
+
+- **GIVEN** `sys_product` 中存在 `category_id` 正确但 `tree_path` 不完整的历史记录
+- **WHEN** 用户点击某个产品类别
+- **THEN** 系统除按 `tree_path` 命中类别外，还必须按 `category_id = categoryId` 兜底查询
+- **AND** 不得因为缺少标准第一层 `product` 节点而返回空列表
+
 ### Requirement: 产品列表查询
 系统 SHALL 支持按名称和状态查询产品列表。
 

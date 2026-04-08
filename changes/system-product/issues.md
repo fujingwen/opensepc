@@ -11,14 +11,12 @@
 3. ~~`enCode` 已补齐前后端必填校验。~~
 4. ~~多级分类新增时的 `categoryId` 继承逻辑与右侧子树查询已按 `tree_path` 收口。~~
 5. ~~前端新增、编辑、删除等操作入口已补齐 `v-hasPermi`，权限显隐与后端权限口径对齐。~~
+6. ~~已确认“建材产品新增时产品名称下拉为空”不是新旧库不一致，而是 `sys_product` 历史数据结构不规范；后端已补充 `tree_path + category_id` 双通道查询兼容。~~
+7. ~~文档中的菜单组件路径已回写为 `system/product/index`，与实际菜单配置保持一致。~~
 
 ## 未完成问题
 
-1. proposal/design/SQL/代码之间仍存在口径分叉：
-   - `design.md` 仍写过独立 `/system/product/category` 接口
-   - 文档中仍出现过 `system/product/index1`
-   - 但当前代码、菜单 SQL 和数据库菜单组件路径都已收口为 `system/product/index`
-2. 状态字典当前实际使用 `sys_region_status` 能工作，但文档没有把字典选择固定下来，后续仍有再次分叉风险。
+1. `master.sys_product` 历史数据仍存在 `tree_path`、层级结构不规范的问题，当前依赖查询兼容兜底；如需彻底清洗数据，需单独立项。
 
 ## 数据库核对摘要
 
@@ -26,3 +24,6 @@
 2. `del_flag` 分布为：`0 = 38470`、`2 = 6`。
 3. 顶级分类（`node_type='category' and parent_id='0'`）当前只有 6 条，说明大量分类是多级结构。
 4. `master.sys_menu` 当前产品菜单组件路径为 `system/product/index`。
+5. 旧库与新库 `master.sys_product` 的 `category/product/spec` 记录数一致，均为 `23 / 6 / 38441`。
+6. 部分记录仅 `category_id` 可用，`tree_path` 无法完整反映类别归属。
+7. 部分类别缺少规范的一层 `product` 节点，导致只按标准树路径查询时会出现产品名称下拉为空。
