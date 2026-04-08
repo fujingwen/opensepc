@@ -1,0 +1,17 @@
+schema: spec-driven
+created: 2026-04-07
+updated: 2026-04-07
+description: 补齐人大金仓 building_supplies_supervision 库 master schema 中缺失的运行必需表
+database:
+  schema: master
+  tables:
+    - master.base_message
+    - master.base_message_receive
+    - master.base_message_template
+    - master.sys_dict_type
+    - master.sys_logininfor
+    - master.t_product_relation
+dependencies:
+  - message-center
+  - quality-trace
+  - dict-migration-test-to-master

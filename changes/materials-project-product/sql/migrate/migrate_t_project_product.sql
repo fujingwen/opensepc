@@ -1,6 +1,6 @@
 -- 将test.t_project_product表迁移到master.t_project_product表
 -- 迁移规则参考: openspec/rules/database-rules.md
--- 关联关系参考: openspec/原型/数据库关联关系/1.备案产品和建材产品表.md
+-- 关联关系参考: openspec/原型/04-数据关系/备案产品与建材产品关系.md
 
 INSERT INTO "master"."t_project_product" (
     "id",

@@ -202,6 +202,8 @@ master.t_project.construction_permit  ←→  master.jck_t_gc_sgxkz.sgxkz_zh
 
 ### Requirement: 新增表单字段调整
 
+系统 SHALL 按原型调整工程项目新增表单的必填、可见与录入方式。
+
 #### Scenario: 新增时的字段规则
 
 - **Given** 用户新增工程项目
@@ -210,6 +212,8 @@ master.t_project.construction_permit  ←→  master.jck_t_gc_sgxkz.sgxkz_zh
 - **Then** 施工单位字段为下拉选择（来自 `t_companyinfo`），非 disabled 输入框
 
 ### Requirement: 列表操作按钮
+
+系统 SHALL 在工程项目列表页提供与原型一致的操作按钮和导出行为。
 
 #### Scenario: 操作按钮
 

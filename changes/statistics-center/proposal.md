@@ -117,7 +117,7 @@
 ## Current Status Notes
 
 - 统计分析页两个导出能力当前不纳入本次交付，先在问题记录中保留，待后续以独立需求补齐
-- 当前未解决问题统一维护在 `openspec/原型/原型文件/未解决问题/statistics-center-unresolved-issues.md`
+- 当前未解决问题统一维护在 `openspec/原型/05-问题跟踪/未解决问题/统计中心历史遗留问题.md`
 
 ## Impact
 

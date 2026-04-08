@@ -23,8 +23,9 @@ FROM (
     (2034535000000000401, '000000', 1, '系统公告', 'system', 'msg_notice_type', '', 'primary', 'Y', 103, 1, now(), NULL::bigint, NULL::timestamp, '系统公告'),
     (2034535000000000402, '000000', 2, '库存信息发布', 'inventory', 'msg_notice_type', '', 'success', 'N', 103, 1, now(), NULL::bigint, NULL::timestamp, '库存信息发布'),
     (2034535000000000403, '000000', 3, '采购信息发布', 'purchase', 'msg_notice_type', '', 'warning', 'N', 103, 1, now(), NULL::bigint, NULL::timestamp, '采购信息发布'),
-    (2034535000000000501, '000000', 1, '已发布', 'published', 'msg_publish_status', '', 'success', 'Y', 103, 1, now(), NULL::bigint, NULL::timestamp, '已发布'),
-    (2034535000000000502, '000000', 2, '已关闭', 'closed', 'msg_publish_status', '', 'danger', 'N', 103, 1, now(), NULL::bigint, NULL::timestamp, '已关闭')
+    (2034535000000000500, '000000', 1, '草稿', 'draft', 'msg_publish_status', '', 'info', 'N', 103, 1, now(), NULL::bigint, NULL::timestamp, '草稿'),
+    (2034535000000000501, '000000', 2, '已发布', 'published', 'msg_publish_status', '', 'success', 'Y', 103, 1, now(), NULL::bigint, NULL::timestamp, '已发布'),
+    (2034535000000000502, '000000', 3, '已关闭', 'closed', 'msg_publish_status', '', 'danger', 'N', 103, 1, now(), NULL::bigint, NULL::timestamp, '已关闭')
 ) AS t(
   "dict_code", "tenant_id", "dict_sort", "dict_label", "dict_value", "dict_type", "css_class", "list_class", "is_default",
   "create_dept", "create_by", "create_time", "update_by", "update_time", "remark"

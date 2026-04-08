@@ -56,6 +56,30 @@
 - **Then** 系统直接写入 `base_message_receive`
 - **Then** 不强制要求存在对应 `base_message` 主记录
 
+### Requirement: 统一提醒入口
+
+系统 SHALL 提供基于真实消息和已发布公告的统一提醒入口。
+
+#### Scenario: 查询顶部提醒摘要
+
+- **Given** 当前用户存在消息或有权限查看已发布公告
+- **When** 前端调用 `/message/notification/summary`
+- **Then** 系统返回当前用户消息未读数
+- **Then** 系统返回最近消息和有权限查看的已发布公告混合列表
+
+#### Scenario: 批量标记消息已读
+
+- **Given** 当前用户进入统一提醒入口
+- **When** 用户点击“全部已读”
+- **Then** 系统批量更新当前用户 `base_message_receive` 中的未读消息为已读
+- **Then** 当当前用户没有未读消息时接口仍返回成功
+
+#### Scenario: 业务提醒跳转建材产品页
+
+- **Given** 当前用户收到 `message_type=warning` 且 `business_type` 为 `audit` 或 `timeout` 的提醒
+- **When** 用户在统一提醒入口或消息详情中点击“去处理”
+- **Then** 前端跳转到 `/materials/product?messageBusinessId={source_business_id}`
+
 ### Requirement: 兼容旧系统消息迁移
 
 系统 SHALL 支持从 `test` 旧消息表迁移到 `master` 新表模型。

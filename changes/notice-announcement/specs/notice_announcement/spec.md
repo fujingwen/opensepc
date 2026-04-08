@@ -2,44 +2,70 @@
 
 ## ADDED Requirements
 
-### Requirement: 维护系统公告
+### Requirement: 查看系统公告
 
-系统 SHALL 允许用户维护系统公告。
-
-#### Scenario: 新建系统公告
-
-- **Given** 用户进入系统公告页面
-- **When** 用户填写标题和正文并提交
-- **Then** 系统新增一条 `msg_notice_publish`
-- **Then** `notice_type` 为 `system`
+企业侧系统 SHALL 允许用户查看系统公告，但不在当前模块维护系统公告。
 
 #### Scenario: 查询系统公告
 
 - **Given** 系统中存在系统公告
-- **When** 用户按关键词过滤
+- **When** 用户进入系统公告页面并按关键词过滤
 - **Then** 系统返回 `notice_type=system` 的公告列表
+
+#### Scenario: 查看系统公告详情
+
+- **Given** 用户在系统公告列表中选择一条公告
+- **When** 用户打开公告详情
+- **Then** 系统展示标题、正文、发布时间和发布状态
+- **Then** 页面不提供新增、编辑、删除入口
 
 ### Requirement: 维护库存信息发布
 
-系统 SHALL 允许用户维护库存信息发布公告。
+系统 SHALL 允许用户维护库存信息发布公告，并支持草稿到发布流转。
 
-#### Scenario: 新建库存信息发布
+#### Scenario: 保存库存信息草稿
 
 - **Given** 用户进入库存信息发布页面
-- **When** 用户填写标题、生产企业和内容并提交
-- **Then** 系统新增一条 `msg_notice_publish`
+- **When** 用户填写标题、生产企业和内容并点击“保存草稿”
+- **Then** 系统新增或更新一条 `msg_notice_publish`
 - **Then** `notice_type` 为 `inventory`
+- **Then** `publish_status` 为 `draft`
+
+#### Scenario: 发布库存信息
+
+- **Given** 用户正在编辑一条库存信息草稿
+- **When** 用户点击“发布”
+- **Then** 系统更新该条公告
+- **Then** `publish_status` 为 `published`
 
 ### Requirement: 维护采购信息发布
 
-系统 SHALL 允许用户维护采购信息发布公告。
+系统 SHALL 允许用户维护采购信息发布公告，并支持草稿到发布流转。
 
-#### Scenario: 新建采购信息发布
+#### Scenario: 保存采购信息草稿
 
 - **Given** 用户进入采购信息发布页面
-- **When** 用户填写标题、施工企业和内容并提交
-- **Then** 系统新增一条 `msg_notice_publish`
+- **When** 用户填写标题、施工企业和内容并点击“保存草稿”
+- **Then** 系统新增或更新一条 `msg_notice_publish`
 - **Then** `notice_type` 为 `purchase`
+- **Then** `publish_status` 为 `draft`
+
+#### Scenario: 发布采购信息
+
+- **Given** 用户正在编辑一条采购信息草稿
+- **When** 用户点击“发布”
+- **Then** 系统更新该条公告
+- **Then** `publish_status` 为 `published`
+
+### Requirement: 企业上下文自动带出
+
+系统 SHALL 在库存/采购发布页面优先带出当前登录用户所属企业（匹配成功时）。
+
+#### Scenario: 页面自动锁定所属企业
+
+- **Given** 当前登录用户的 `deptName` 能和企业列表匹配
+- **When** 用户进入库存信息发布或采购信息发布页面
+- **Then** 页面自动回填并锁定对应企业
 
 ### Requirement: 页面布局
 

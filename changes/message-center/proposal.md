@@ -30,6 +30,9 @@
 - 新增 `sql/migrate` 迁移脚本，明确从 `test.base_message` / `test.base_messagereceive` / `test.base_message_template` / `test.t_message` 到 `master` 的映射规则，并兼容吸收现有 `master.msg_message` / `master.msg_message_user` 存量数据；旧的建材流转提醒编码统一归一到 `warning/audit`
 - 保持消息中心前端页面、接口路径和交互基本不变，但后端实现切换为迁移后的表模型
 - 将建材产品流转通知从直接写 `msg_message` 切换为直接写 `base_message_receive`
+- 新增统一提醒摘要接口 `/message/notification/summary`，用于顶部铃铛读取真实消息/公告数据
+- 新增全部已读接口 `/message/read-all`，并将单条已读/全部已读调整为幂等成功返回
+- 业务类审核/超时消息支持跳转到 `/materials/product?messageBusinessId=...`
 
 ## Capabilities
 
@@ -106,27 +109,37 @@
 
 也就是说，迁移的是底层表模型和后端实现方式，不是前端页面契约。
 
+- 统一提醒新增：
+  - `GET /message/notification/summary`
+  - `PUT /message/read-all`
+
 ## Manual Alignment
 
-对照《青岛市建设工程材料信息管理平台操作手册》，本提案虽然已经完成消息表模型切换，但还有两项手册级交互尚未落地：
+对照《青岛市建设工程材料信息管理平台操作手册》，本提案本轮已完成以下手册级交互收口：
 
-- 顶部铃铛未读数应来自真实消息/公告数据源，而不是前端本地临时状态。
-- 建材产品审核类业务消息点击后应支持跳转到建材产品列表，而不是始终停留在详情弹窗。
+- 顶部铃铛未读数改为来自真实消息/公告数据源，而不是前端本地临时状态。
+- 人工发送消息同步进入右上角统一提醒入口。
+- 建材产品审核类业务消息支持跳转到建材产品列表，而不是始终停留在详情弹窗。
+
+当前仍有以下后续事项：
+
+- 公告暂无用户维度已读关系表，统一提醒中的公告当前按只读信息展示，不参与未读统计。
+- 历史迁移仍需兼容 `test.t_message` 与少量非纯数字用户标识。
 
 ## Impact
 
 - OpenSpec
-  - `openspec/changes/message-center-notice/.openspec.yaml`
-  - `openspec/changes/message-center-notice/proposal.md`
-  - `openspec/changes/message-center-notice/design.md`
-  - `openspec/changes/message-center-notice/issues.md`
-  - `openspec/changes/message-center-notice/tasks.md`
-  - `openspec/changes/message-center-notice/specs/message_center/spec.md`
+  - `openspec/changes/message-center/.openspec.yaml`
+  - `openspec/changes/message-center/proposal.md`
+  - `openspec/changes/message-center/design.md`
+  - `openspec/changes/message-center/issues.md`
+  - `openspec/changes/message-center/tasks.md`
+  - `openspec/changes/message-center/specs/message_center/spec.md`
 - SQL
-  - `openspec/changes/message-center-notice/sql/tables/**`
-  - `openspec/changes/message-center-notice/sql/indexes/base_indexes.sql`
-  - `openspec/changes/message-center-notice/sql/sequences/base_sequences.sql`
-  - `openspec/changes/message-center-notice/sql/migrate/**`
+  - `openspec/changes/message-center/sql/tables/**`
+  - `openspec/changes/message-center/sql/indexes/base_indexes.sql`
+  - `openspec/changes/message-center/sql/sequences/base_sequences.sql`
+  - `openspec/changes/message-center/sql/migrate/**`
 - Backend
   - `construction-material-backend/hny-modules/hny-system/**/MsgMessage*`
   - `construction-material-backend/hny-modules/hny-materials/**/ProductFlowMessage*`

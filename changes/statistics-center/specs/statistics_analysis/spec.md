@@ -74,3 +74,18 @@
 - **When** 页面渲染合计行
 - **Then** 总数量和总金额保留两位小数
 - **Then** 总数量在单位唯一时显示数量加单位
+
+### Requirement: 统计分析导出
+
+系统 SHALL 提供统计分析页面的工作调度表和信息确认情况表导出能力。
+#### Scenario: 导出工作调度表
+
+- **Given** 用户已填写合法的统计分析查询条件
+- **When** 用户点击“导出工作调度表”
+- **Then** 系统调用 `/materials/statistics/analysis/exportSchedule` 导出当前查询条件下的数据
+
+#### Scenario: 导出信息确认情况表
+
+- **Given** 用户已填写合法的统计分析查询条件
+- **When** 用户点击“导出信息确认情况表”
+- **Then** 系统调用 `/materials/statistics/analysis/exportConfirmation` 导出当前查询条件下的数据

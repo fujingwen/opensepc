@@ -30,7 +30,7 @@ COMMENT ON COLUMN "master"."msg_notice_publish"."publisher_user_id" IS '发布�
 COMMENT ON COLUMN "master"."msg_notice_publish"."publisher_name" IS '发布人名称';
 COMMENT ON COLUMN "master"."msg_notice_publish"."company_id" IS '企业ID';
 COMMENT ON COLUMN "master"."msg_notice_publish"."company_name" IS '企业名称';
-COMMENT ON COLUMN "master"."msg_notice_publish"."publish_status" IS '发布状态(published/closed)';
+COMMENT ON COLUMN "master"."msg_notice_publish"."publish_status" IS '发布状态(draft/published/closed)';
 COMMENT ON COLUMN "master"."msg_notice_publish"."publish_time" IS '发布时间';
 COMMENT ON COLUMN "master"."msg_notice_publish"."create_dept" IS '创建部门';
 COMMENT ON COLUMN "master"."msg_notice_publish"."create_by" IS '创建人';
