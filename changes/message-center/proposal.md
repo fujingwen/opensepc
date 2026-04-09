@@ -31,6 +31,7 @@
 - 保持消息中心前端页面、接口路径和交互基本不变，但后端实现切换为迁移后的表模型
 - 将建材产品流转通知从直接写 `msg_message` 切换为直接写 `base_message_receive`
 - 新增统一提醒摘要接口 `/message/notification/summary`，用于顶部铃铛读取真实消息/公告数据
+- 顶部统一提醒摘要接口需允许代理商访问，确保代理商登录后也能在右上角铃铛看到审核消息提醒
 - 新增全部已读接口 `/message/read-all`，并将单条已读/全部已读调整为幂等成功返回
 - 业务类审核/超时消息支持跳转到 `/materials/product?messageBusinessId=...`
 
@@ -112,6 +113,7 @@
 - 统一提醒新增：
   - `GET /message/notification/summary`
   - `PUT /message/read-all`
+- 其中 `/message/notification/summary` 需覆盖消息用户、公告查看用户以及代理商角色的访问场景，不能因为代理商未开通完整消息中心菜单而被拒绝。
 
 ## Manual Alignment
 
