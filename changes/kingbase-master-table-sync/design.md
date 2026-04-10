@@ -4,7 +4,7 @@
 
 本设计仅聚焦 KingbaseES `building_supplies_supervision.master` 与 PostgreSQL 同名库 `master` schema 的缺失表补齐，不扩展新的业务需求。
 
-当前已确认的差异为：
+2026-04-07 首轮比对时，已确认的差异为：
 
 - PostgreSQL 存在但 KingbaseES 不存在：
   - `base_message`
@@ -18,19 +18,21 @@
 
 其中额外表 `base_region` 不属于本次变更处理范围。
 
+截至 2026-04-10，上述 6 张表已全部在金仓开发库落地，本设计需要按当前现实回写为“迁移完成后的验收设计”。
+
 ## Design Goals
 
 - 让 KingbaseES `master` schema 与当前项目运行所需表保持可运行一致
 - 优先复用 PostgreSQL 源库的真实表结构，而不是只按文档推导
-- 控制迁移风险，避免一次性做超出范围的全库同步
-- 为后续正式迁移脚本提供明确顺序与校验口径
+- 控制迁移后的长期维护风险，避免继续沿用“缺表待迁移”的过时口径
+- 为收尾验收提供明确的结构校验、样本校验与链路校验口径
 
 ## Non-Goals
 
 - 不删除 KingbaseES 中比源库多出的表
 - 不对现有业务表做字段扩展
 - 不改动现有接口契约
-- 不在本阶段直接执行迁移
+- 不重新发起一轮全量迁移
 
 ## Table Strategy
 
@@ -143,19 +145,19 @@
 
 ## Migration Phases
 
-### Phase 1: DDL
+### Phase 1: Structure Confirmation
 
-- 在 KingbaseES 创建 6 张缺失表
-- 创建主键、唯一键、必要索引
-- 处理 `sys_dict_type` 默认值兼容
+- 确认 KingbaseES 中 6 张表均已存在
+- 确认主键、唯一键、必要索引现状与 PostgreSQL 源库对齐
+- 确认 `sys_dict_type` 的当前运行方式不再被默认值函数缺失阻塞
 
-### Phase 2: Data Migration
+### Phase 2: Data Baseline Confirmation
 
-- 先迁小表
-- 后迁 `base_message_receive`
-- 所有脚本需具备重复执行时的去重或幂等控制
+- 对静态表确认当前行数与源库一致
+- 对动态表记录当前基线差异
+- 保留抽样记录，避免后续再把“动态增长”误判为“迁移失败”
 
-### Phase 3: Validation
+### Phase 3: Runtime Validation
 
 - 表存在性校验
 - 行数校验
@@ -168,7 +170,7 @@
 迁移完成后至少验证：
 
 - KingbaseES 中 6 张表全部存在
-- 源库与目标库的行数一致
+- 静态表与源库行数一致；动态表完成当前基线记录
 - `base_message_receive` 抽样消息记录内容一致
 - `sys_dict_type` 可新增字典类型，不因默认值函数缺失报错
 - `t_product_relation` 可被质量追溯查询正常访问

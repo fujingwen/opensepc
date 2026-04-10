@@ -17,6 +17,7 @@
 ## 未完成问题
 
 1. `master.sys_product` 历史数据仍存在 `tree_path`、层级结构不规范的问题，当前依赖查询兼容兜底；如需彻底清洗数据，需单独立项。
+2. 开发库中 `master.sys_menu` 同时存在 `system/product/index` 与 `system/product/index-dict` 两个有效菜单入口，最终页面入口尚未收口，容易造成用户从不同菜单进入不同实现。
 
 ## 数据库核对摘要
 
@@ -24,6 +25,7 @@
 2. `del_flag` 分布为：`0 = 38470`、`2 = 6`。
 3. 顶级分类（`node_type='category' and parent_id='0'`）当前只有 6 条，说明大量分类是多级结构。
 4. `master.sys_menu` 当前产品菜单组件路径为 `system/product/index`。
-5. 旧库与新库 `master.sys_product` 的 `category/product/spec` 记录数一致，均为 `23 / 6 / 38441`。
+5. 旧库与新库 `master.sys_product` 的 `category/product/spec` 记录数一致，均为 `27 / 7 / 38442`。
 6. 部分记录仅 `category_id` 可用，`tree_path` 无法完整反映类别归属。
 7. 部分类别缺少规范的一层 `product` 节点，导致只按标准树路径查询时会出现产品名称下拉为空。
+8. `master.sys_menu` 当前同时保留 `system/product/index` 与 `system/product/index-dict` 两个组件路径。

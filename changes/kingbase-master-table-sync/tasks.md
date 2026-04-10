@@ -18,19 +18,19 @@
 
 ## 3. Migration Preparation
 
-- [ ] 3.1 生成 6 张缺失表的 KingbaseES DDL
-- [ ] 3.2 生成索引与约束补齐 SQL
-- [ ] 3.3 设计 `sys_dict_type` 默认值兼容方案
-- [ ] 3.4 生成数据迁移 SQL
-- [ ] 3.5 设计 `base_message_receive` 分批迁移方案
+- [x] 3.1 生成 6 张缺失表的 KingbaseES DDL
+- [x] 3.2 生成索引与约束补齐 SQL
+- [x] 3.3 设计 `sys_dict_type` 默认值兼容方案
+- [x] 3.4 生成数据迁移 SQL
+- [x] 3.5 设计 `base_message_receive` 分批迁移方案
 
 ## 4. Migration Execution
 
-- [ ] 4.1 在 KingbaseES 创建缺失表
-- [ ] 4.2 补齐索引与约束
-- [ ] 4.3 执行小表数据迁移
-- [ ] 4.4 分批迁移 `base_message_receive`
-- [ ] 4.5 执行迁移后行数与抽样校验
+- [x] 4.1 在 KingbaseES 创建缺失表
+- [x] 4.2 补齐索引与约束
+- [x] 4.3 执行小表数据迁移
+- [x] 4.4 分批迁移 `base_message_receive`
+- [x] 4.5 执行迁移后行数与抽样校验
 
 ## 5. Validation
 
@@ -38,3 +38,4 @@
 - [ ] 5.2 验证字典类型链路
 - [ ] 5.3 验证登录日志链路
 - [ ] 5.4 验证质量追溯链路
+- [x] 5.5 回写当前数据库现实与动态表基线差异

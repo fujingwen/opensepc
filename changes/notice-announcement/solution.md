@@ -38,6 +38,7 @@
 - 新建采购/库存公告时仅要求填写标题、内容
 - 企业过滤和跨企业查看范围不再由页面手工控制
 - 公告列表与详情页补充展示 `publisherName`
+- 当前实现口径：采购/库存公告的“发布”动作主要通过列表草稿行按钮触发，表单页主动作是保存草稿
 
 ## 3. 后端落地
 
@@ -74,6 +75,7 @@
 
 - 控制器接口路径和接口定义未调整
 - 本次业务变化主要体现在服务层规则
+- 本轮按当前实现同步了 `notice:systemNotice:*` 系统公告权限编码，并收紧了非目标角色对采购/库存列表的查询边界
 
 ## 4. OpenSpec 同步
 
@@ -110,26 +112,38 @@
 
 ### 5.3 数据验证
 
-基于仓库备份文件：
+基于 2026-04-10 对开发库 `building_supplies_supervision` 的只读核查：
 
-- `backups/kingbase_building_supplies_supervision_master_20260407_145309.sql`
+- `master.msg_notice_publish`
+- `master.sys_dict_data`
+- `master.sys_menu`
+- `information_schema.columns`
+- `information_schema.table_constraints`
+- `pg_indexes`
 
 结论：
 
-- `master.msg_notice_publish` 在 2026-04-07 14:53:09 的备份中为空表
-- 当前无真实公告历史样本可供业务数据回放验证
-- 因此本次变更已完成结构、规则、编译层面的收口，但数据运行层结论仍为“空库样本”
+- `master.msg_notice_publish` 当前已有 4 条有效公告数据，不再是空库状态
+- 其中 1 条草稿公告已经带有 `publish_time`，说明开发库表结构仍沿用旧的“发布时间非空默认 now()”定义
+- `msg_publish_status` 字典当前只有 `published/closed`，缺少 `draft`
+- `msg_notice_publish` 当前未查询到主键/索引定义，和 change 中的 DDL、索引 SQL 不一致
+- 系统公告权限编码已按当前实现同步为 `notice:systemNotice:*`，后端保留了对旧编码的兼容
 
 ## 6. 当前状态
 
-本次 `notice-announcement` 变更已经完成：
+本次 `notice-announcement` 变更已完成的部分：
 
 - 提案对齐
 - 设计对齐
 - 规格对齐
-- 实现对齐
+- 代码实现主流程对齐
 - OpenSpec 校验
 - 后端编译校验
-- 数据现状说明
+- 数据现状复核
+- 后端权限边界补充修正
 
-剩余事项仅为后续若出现真实公告业务数据时，再补充运行数据验证结论。
+剩余事项主要是开发库数据库收口：
+
+- 是否补齐 `msg_publish_status=draft` 字典
+- 是否调整 `msg_notice_publish` 的默认值和可空约束
+- `msg_notice_publish` 主键/索引落库

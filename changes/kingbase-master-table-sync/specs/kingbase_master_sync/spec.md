@@ -45,5 +45,6 @@
 - **Given** PostgreSQL 源库中上述 6 张表存在历史数据
 - **When** 执行迁移脚本
 - **Then** KingbaseES 中对应表的数据应被导入
-- **Then** 迁移后目标表行数应与源表一致
+- **Then** 静态表迁移后目标表行数应与源表一致
+- **Then** 对 `base_message`、`base_message_receive`、`sys_logininfor` 这类运行期持续写入表，应记录迁移完成时的基线和当前差异说明，而不是长期要求持续逐表等量
 - **Then** 大表迁移应支持分批执行和校验

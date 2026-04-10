@@ -15,6 +15,12 @@
 - **THEN** 左侧显示产品类别树（sys_product 表中 node_type='category' 的记录）
 - **AND** 显示所有层级的类别（后端组织树形结构）
 
+#### Scenario: 系统管理与建材业务共享查询权限
+- **GIVEN** 用户访问产品类别或产品查询接口
+- **WHEN** 用户具备 `system:product:list` 或 `materials:product:list`
+- **THEN** 系统允许访问查询接口
+- **AND** 不要求同时持有两套权限
+
 ### Requirement: 产品列表加载
 系统 SHALL 支持选中产品类别后加载对应的产品列表。
 

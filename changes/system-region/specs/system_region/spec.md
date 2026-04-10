@@ -49,9 +49,11 @@
 #### Scenario: 页面列表
 
 - **WHEN** 用户访问 `/system/region/list`
-- **THEN** 系统校验权限 `system:region:list`
+- **THEN** 系统校验 `system:region:list` 或企业基础数据查询权限
+- **AND** 至少兼容 `base:production:list`、`base:construction:list`、`base:agent:list`
 
 #### Scenario: 详情查询
 
 - **WHEN** 用户访问 `/system/region/{id}`
-- **THEN** 系统校验权限 `system:region:query`
+- **THEN** 系统校验 `system:region:query` 或企业基础数据查询权限
+- **AND** 至少兼容 `base:production:list`、`base:construction:list`、`base:agent:list`

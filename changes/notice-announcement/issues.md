@@ -20,18 +20,22 @@
 ## 当前关注点
 
 1. `msg_notice_publish` 表仍保留 `company_id/company_name` 字段，当前实现虽然允许为空，但后续如果继续沿用旧逻辑，容易再次把企业字段误设为必填。
-2. 采购/库存公告的权限边界当前主要由角色与发布状态共同控制，后续如果菜单权限或角色模型调整，需要同步回看这部分规则。
-3. 当前草稿维护规则是“发布人本人继续维护”，如果后续存在企业内多人协作编辑需求，需要单独补充方案。
+2. 当前草稿维护规则是“发布人本人继续维护”，如果后续存在企业内多人协作编辑需求，需要单独补充方案。
+3. 开发库 `msg_notice_publish` 的运行表结构仍为当前实现口径：`publish_status` 默认值为 `published`、`publish_time` 为非空且默认 `now()`，草稿数据也会落发布时间；后续如要调整这套规则，需要连同实现一起变更。
+4. 开发库 `msg_notice_publish` 仍未补齐主键/索引定义，数据库工程化层面仍有优化空间。
+5. 开发库 `msg_publish_status` 字典当前仅有 `published/closed`，草稿状态依赖前端本地兜底展示。
 
 ## 对照实现结论
 
 1. 前端当前实现与“无企业选择”的交互口径一致。
-2. 后端当前实现与“发布后按业务类型面向角色统一可见”的口径一致，且列表身份识别已改为基于真实角色/企业上下文，而非公告菜单权限。
-3. 控制器接口路径没有变化，业务变化主要集中在前端页面配置和 `MsgNoticePublishServiceImpl` 的保存、查询、权限规则。
+2. 后端已支持按真实角色/企业上下文控制采购/库存公告可见范围，并在本轮补充了非目标角色列表查询的接口收口，避免代理商等非施工/生产角色误查采购或库存列表。
+3. 控制器接口路径没有变化，业务变化主要集中在前端页面配置和 `MsgNoticePublishServiceImpl` 的保存、查询、权限规则；系统公告权限已按当前实现同步到 `notice:systemNotice:*` 口径，后端继续兼容旧权限编码。
 4. 公告发布后的站内消息发送链路已改为异步批量插入，以降低发布接口超时风险。
 
 ## 数据验证结论
 
-1. 基于仓库内备份文件 `backups/kingbase_building_supplies_supervision_master_20260407_145309.sql` 核查，`master.msg_notice_publish` 的 `COPY` 数据段为空。
-2. 同一份备份中 `SELECT pg_catalog.setval('master.seq_msg_notice_publish', 1, false);` 表明该序列仍处于初始状态。
-3. 结论：截至 2026-04-07 14:53:09 的备份样本，库中尚无真实公告发布数据，因此本次变更已完成代码和规格校验，但运行数据层只能得出“当前为空库状态”的验证结论。
+1. 2026-04-10 直接连接开发库 `building_supplies_supervision` 核查，`master.msg_notice_publish` 当前已有 4 条有效数据：`purchase=3`（其中 `draft=1`）、`inventory=1`。
+2. 当前 4 条数据中有 3 条 `company_id/company_name` 为空，说明“企业字段非必填”的新口径已经进入运行数据。
+3. 草稿公告 `id=2042443780841377793` 的 `publish_status='draft'`，但 `publish_time='2026-04-10 11:25:22'`，证实开发库表结构仍在沿用旧的“发布时间非空默认 now()”定义。
+4. 开发库 `msg_publish_status` 字典仅存在 `published`、`closed` 两个值，`draft` 尚未补齐。
+5. 开发库 `pg_indexes` 未查询到 `msg_notice_publish` 的索引记录，`information_schema.table_constraints` 也未体现主键约束，说明变更 SQL 尚未完整落实到实库。

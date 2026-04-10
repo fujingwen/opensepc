@@ -18,13 +18,13 @@
 
 ## 未完成问题
 
-1. 导入能力仍需按 `batch-import-dialog` 提案统一实现，包含模板下载、上传、预览、编辑、删除、覆盖导入和结果回传。
+1. `record_no` 的“数据库层严格唯一”仍未真正落库：当前开发库和 PostgreSQL 源库都只存在普通索引 `idx_t_record_product_record_no`，尚未执行 `uk_t_record_product_record_no_active`，活动数据中仍有 3 组重复备案证号。
 2. `send_flag` 是否为正式业务字段仍待确认，在确认前不宜把“未展示/未查询 `send_flag`”扩大为确定缺陷。
 3. 企业删除口径尚未全链路统一到 `del_flag + company_type`。
 
 ## 建议实施顺序
 
-1. 在 proposal/design/spec 中明确 `manufacture_id` 为主字段、`manufactur` 为历史遗留字段。
-2. 按 `batch-import-dialog` 统一导入实现。
+1. 先清理重复 `record_no`，再执行 `uk_t_record_product_record_no_active`。
+2. 在 proposal/design/spec 中明确 `manufacture_id` 为主字段、`manufactur` 为历史遗留字段。
 3. 确认 `send_flag` 是否真的需要。
 4. 梳理企业历史数据删除标记，将判断统一到 `del_flag + company_type`。

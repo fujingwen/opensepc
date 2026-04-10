@@ -40,4 +40,6 @@
 - [x] 5.3 `openspec validate notice-announcement` 通过
 - [x] 5.4 `hny-system` 模块编译通过
 - [x] 5.5 补充真实公告发布数据验证结论
-  结论：基于 `backups/kingbase_building_supplies_supervision_master_20260407_145309.sql` 核查，`master.msg_notice_publish` 在 2026-04-07 14:53:09 的备份中仍为空表，当前无历史业务样本可供验证。
+  结论：2026-04-10 直连开发库核查，`master.msg_notice_publish` 当前已有 4 条有效数据（`purchase=3`、`inventory=1`），不再是空库状态；但同步发现开发库仍缺少 `draft` 字典、`publish_time` 仍为非空默认值、且 `msg_notice_publish` 尚未补齐主键/索引。
+- [ ] 5.6 补齐开发库与 change SQL 的数据库收口项
+  包括：是否补齐 `msg_publish_status=draft` 字典、是否调整 `msg_notice_publish.publish_time` 规则、以及主键/索引落库。

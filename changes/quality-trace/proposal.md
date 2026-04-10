@@ -10,7 +10,7 @@
   - 缺陷建材使用情况
   - 缺陷建材厂家
 - `master.t_quality_trace` 已存在且已完成历史迁移，真实字段为 `batch_no`，不是旧提案中的 `batch`
-- `test.t_product_relation` 仅存在于 `test`，`master` 尚未落地对应关系表
+- `master.t_product_relation` 现已落地，但当前只承接了历史 `legacy_check_product_id`，`quality_trace_id` 尚未形成稳定回填
 - “检测缺陷建材产品 / 缺陷建材使用情况 / 缺陷建材厂家”这 3 个页面存在外部数据接入可能，当前无法仅凭现有主库数据完全还原其业务语义
 
 因此需要将提案修订为“四页完整方案 + 分层实施方案”：
@@ -22,7 +22,7 @@
 
 - 将 `quality-trace` 变更扩展为 4 个页面的完整模块
 - 修正 `t_quality_trace` 的字段口径，统一使用真实字段 `batch_no`
-- 新增 `master.t_product_relation` 设计，用于承接历史关系和后续闭环/隐藏状态
+- 回写 `master.t_product_relation` 的当前落地事实：表和历史数据已存在，但仍属于弱关联承接态
 - 为“检测缺陷建材产品”补充复检合格所需字段
 - 将“缺陷建材使用情况”“缺陷建材厂家”定义为外部数据优先接入页：
   - 前端页面本次完成
@@ -82,9 +82,9 @@
 
 ### 2. 历史关系承接部分
 
-- `test.t_product_relation` 只存在于 `test`
-- 当前真实库中无法直接证明 `F_CheckProductId -> t_quality_trace.id/original_id`
-- 因此本次新增 `master.t_product_relation` 设计时，保留历史字段承接能力，但不在提案中虚构一条未经验证的强关系
+- `master.t_product_relation` 已存在，当前 1058 条记录全部保留了 `legacy_check_product_id`
+- 当前真实库中仍无法直接证明 `legacy_check_product_id -> t_quality_trace.id/original_id`
+- 因此本次提案继续保留“弱关联承接”口径，不在文档中虚构一条未经验证的强关系
 
 ### 3. 外部数据优先接入部分
 

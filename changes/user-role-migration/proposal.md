@@ -16,6 +16,21 @@
 - 数据迁移：将 `base_user`、`base_organize`、`base_position`、`base_userrelation` 表数据迁移到新系统对应表
 - ID映射策略：将Test模式的VARCHAR类型ID转换为Master模式的BIGINT自增ID
 
+## Current Status
+
+截至 2026-04-10，当前金仓开发库的迁移状态应按“部分完成但未闭环”理解，而不能再沿用原文中的“用户迁移待执行”单一口径：
+
+- `master.sys_user = 4937`
+- `master.sys_user.original_id is not null = 4915`
+- `master.sys_user_role = 4938`
+- PostgreSQL 源库 `test.base_user = 5233`
+
+因此本提案当前的真实收尾重点是：
+
+- 回写已完成的组织、岗位、角色与部分用户迁移状态
+- 记录用户迁移差额与 `original_id` 缺失情况
+- 补充 rollback 验证与异常补偿策略
+
 ## Capabilities
 
 ### New Capabilities
