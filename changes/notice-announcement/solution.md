@@ -9,6 +9,8 @@
 - 库存公告发布后应面向全部施工企业可见
 - 采购公告发布后应面向全部生产企业可见
 - 发布人本人仍应能继续查看和维护自己创建的草稿
+- 超级管理员、租户管理员应可直接维护采购/库存公告
+- 列表与详情页应展示发布人，便于识别公告来源
 
 ## 2. 前端落地
 
@@ -35,6 +37,7 @@
 
 - 新建采购/库存公告时仅要求填写标题、内容
 - 企业过滤和跨企业查看范围不再由页面手工控制
+- 公告列表与详情页补充展示 `publisherName`
 
 ## 3. 后端落地
 
@@ -49,8 +52,21 @@
 - 按公告类型与角色控制已发布公告的查看范围
 - 允许发布人本人继续查看和维护自己创建的草稿
 - 已发布公告不允许再次修改
+- 超级管理员、租户管理员通过特权判断直接放行，不受企业角色限制
+- 企业用户查看范围按真实角色与企业上下文识别，避免列表接口误判身份
 
-### 3.2 接口层
+### 3.2 消息通知
+
+- `construction-material-backend/hny-modules/hny-system/src/main/java/com/hny/system/service/impl/MsgMessageServiceImpl.java`
+- `construction-material-backend/hny-modules/hny-system/src/main/java/com/hny/system/mapper/MsgMessageUserMapper.java`
+- `construction-material-backend/hny-modules/hny-system/src/main/resources/mapper/system/MsgMessageUserMapper.xml`
+
+处理内容：
+
+- 公告首次发布时，向对应受众异步发送站内消息
+- 收件箱记录改为批量写入，减少逐条插入造成的接口超时风险
+
+### 3.3 接口层
 
 - `construction-material-backend/hny-modules/hny-system/src/main/java/com/hny/system/controller/system/MsgNoticePublishController.java`
 
@@ -76,6 +92,9 @@
 - 采购/库存公告不再要求选择企业
 - 库存公告发布后全部施工企业可见
 - 采购公告发布后全部生产企业可见
+- 超级管理员、租户管理员不受企业角色限制
+- 公告列表与详情页展示发布人
+- 公告发布后的站内消息通知改为异步批量发送
 
 ## 5. 校验结果
 

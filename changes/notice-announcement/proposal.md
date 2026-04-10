@@ -16,6 +16,7 @@
 - 明确采购公告由施工企业发布，发布后所有生产企业可见
 - 取消采购/库存公告“前端必须选择企业”的交互要求
 - 取消采购/库存公告“后端必须传入企业 ID/企业名称”的入参强校验
+- 明确超级管理员/租户管理员维护采购、库存公告时不受企业角色限制
 - 保留采购/库存公告的“草稿 -> 发布”流转
 - 保留现有菜单、接口路径、表结构主模型不变
 
@@ -38,6 +39,7 @@
 - 新建采购/库存公告时，只需要填写标题和内容即可提交
 - 页面不再依赖“根据登录人自动匹配并锁定所属企业”的交互前提
 - 已发布公告的跨企业查看范围由后端统一控制，前端不再承担企业过滤职责
+- 采购/库存公告列表与详情页展示发布人，便于识别公告来源
 
 ## Backend Changes
 
@@ -46,6 +48,7 @@
 - `/notice/publish` 的新增、编辑接口保持不变
 - `purchase` 和 `inventory` 类型公告不再强制要求 `companyId/companyName`
 - `msg_notice_publish` 表中的 `company_id/company_name` 字段保留，用于兼容历史数据和后续扩展
+- 发布后继续沿用站内消息通知能力，但改为异步发送并批量写入收件箱，避免发布接口阻塞
 
 ### 可见范围
 
@@ -56,12 +59,14 @@
   - 施工企业负责发布和维护自己的草稿
   - 公告发布后，所有生产企业都可以查看
 - 发布人本人仍可查看自己创建的草稿或记录，避免“保存后自己不可见”
+- 列表可见范围按当前用户真实角色/企业上下文判断，不再依赖公告菜单权限误判企业身份
 
 ### 管理边界
 
 - 系统公告在该模块中不支持新增、编辑、删除
 - 采购/库存公告已发布后仍不允许再次修改
 - 草稿数据允许继续编辑、删除或发布
+- 超级管理员、租户管理员可直接维护采购/库存公告，不受施工企业/生产企业角色限制
 
 ## Capabilities
 
@@ -91,6 +96,8 @@
 - 采购/库存公告支持草稿保存后再发布
 - 采购/库存公告不再要求页面手工选择企业
 - 采购/库存公告不再要求后端必须接收企业字段
+- 采购/库存公告列表与详情页展示发布人
+- 超级管理员、租户管理员不受企业角色限制
 - 公告发布后的查看范围改为按业务类型面向对应角色企业统一开放：
   - 库存公告 -> 全部施工企业
   - 采购公告 -> 全部生产企业
@@ -102,6 +109,9 @@
 - Backend
   - `construction-material-backend/hny-modules/hny-system/src/main/java/com/hny/system/service/impl/MsgNoticePublishServiceImpl.java`
   - `construction-material-backend/hny-modules/hny-system/src/main/java/com/hny/system/controller/system/MsgNoticePublishController.java`
+  - `construction-material-backend/hny-modules/hny-system/src/main/java/com/hny/system/service/impl/MsgMessageServiceImpl.java`
+  - `construction-material-backend/hny-modules/hny-system/src/main/java/com/hny/system/mapper/MsgMessageUserMapper.java`
+  - `construction-material-backend/hny-modules/hny-system/src/main/resources/mapper/system/MsgMessageUserMapper.xml`
 - Frontend
   - `construction-material-web/src/views/notice/components/NoticeManagePage.vue`
   - `construction-material-web/src/views/notice/inventory/index.vue`
